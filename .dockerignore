@@ -13,3 +13,8 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Frontend local artifacts
+src/main/webapp/node/
+src/main/webapp/node_modules/
+src/main/webapp/dist/

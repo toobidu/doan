@@ -6,9 +6,9 @@ spring:
     allow-circular-references: true
 
   datasource:
-    url: jdbc:postgresql://20.2.232.7:5432/myapp
-    username: postgres
-    password: postgresql
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/quizizz}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
 #    url: jdbc:postgresql://localhost:5436/quiziz
 #    username: demo
 #    password: demo
@@ -27,8 +27,8 @@ spring:
 
   data:
     redis:
-      host: 20.2.232.7
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       timeout: 2000ms
       lettuce:
         pool:
@@ -47,8 +47,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: dungtien3kk@gmail.com
-    password: zfnz jlzs eies airw
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -60,12 +60,12 @@ spring:
           writetimeout: 5000
 
 openai:
-  api-key: ${KEY}
+  api-key: ${OPENAI_API_KEY:${KEY:}}
   base-url: https://api.openai.com/v1
   model: gpt-4o-mini
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   shutdown: graceful
   tomcat:
     connection-timeout: 20000
@@ -105,10 +105,10 @@ jwt:
   refresh-expiration: 604800000
 
 minio:
-  endpoint: http://minio:9000
-  public-endpoint: http://20.2.234.8:9000
-  access-key: minioadmin
-  secret-key: minioadmin123
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin123}
   image-bucket: quizizz-images
   avatar-bucket: quizizz-avatars
   secure: false

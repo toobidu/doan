@@ -1,7 +1,6 @@
 package org.example.quizizz.common.config;
 
 import org.example.quizizz.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,10 +16,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     /**
      * Cấu hình Spring Security.
@@ -31,6 +33,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         String[] publicPaths = {
+            "/",
+            "/index.html",
+            "/favicon.ico",
+            "/assets/**",
+            "/manifest.webmanifest",
+            "/robots.txt",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
@@ -46,16 +54,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(publicPaths).permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         // Socket.IO endpoints - allow all for WebSocket handshake
                         .requestMatchers("/socket.io/**").permitAll()
                         // Legacy WebSocket endpoints (if still needed)
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/ws/info/**").permitAll()
-                        // Swagger endpoints
-                        .requestMatchers(publicPaths).permitAll()
+                    .requestMatchers("/api/**").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().authenticated())
+                    .anyRequest().permitAll())
                 // Thêm JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

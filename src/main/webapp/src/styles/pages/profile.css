@@ -1,0 +1,130 @@
+/* Profile Page Layout */
+.pf-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+}
+
+.pf-profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.pf-content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  animation: pf-fadeIn 0.5s ease-out;
+}
+
+@keyframes pf-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading and Error States */
+.pf-loading-container,
+.pf-error-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.pf-loading-spinner {
+  font-size: 3rem;
+  color: var(--primary);
+  animation: pf-spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes pf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pf-error-message {
+  color: var(--danger);
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pf-back-button {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pf-back-button:hover {
+  transform: translateX(-3px);
+}
+
+/* Success Toast */
+.pf-success-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--success);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  z-index: 1000;
+  animation: pf-slideIn 0.3s ease-out;
+}
+
+@keyframes pf-slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+  .pf-content {
+    padding: 1rem;
+  }
+
+  .pf-profile-container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pf-content {
+    padding: 1rem;
+  }
+
+  .pf-profile-container {
+    padding: 1rem;
+  }
+}

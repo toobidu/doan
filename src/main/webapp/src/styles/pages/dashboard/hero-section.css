@@ -1,0 +1,320 @@
+/* Keyframes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Container & Background */
+.dh-hero-section {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 16px;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    color: var(--surface);
+    position: relative;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    max-width: 1200px;
+    width: 95%;
+}
+
+.dh-hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+}
+
+.dh-hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+}
+
+.dh-hero-left {
+    flex: 1;
+    text-align: left;
+}
+
+.dh-hero-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.dh-hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.dh-hero-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.dh-hero-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.dh-hero-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: var(--shadow-light);
+}
+
+.dh-hero-button.primary {
+    background: var(--accent);
+    color: var(--surface);
+}
+
+.dh-hero-button.primary:hover {
+    background: color-mix(in srgb, var(--accent) 90%, black);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(var(--accent-rgb), 0.3);
+}
+
+.dh-hero-button.secondary {
+    background: rgba(var(--surface-rgb), 0.2);
+    color: var(--surface);
+}
+
+.dh-hero-button.secondary:hover {
+    background: rgba(var(--surface-rgb), 0.3);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-light);
+}
+
+.dh-hero-decoration {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: float 4s ease-in-out infinite;
+}
+
+.dh-brain-icon-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dh-brain-icon-main {
+    font-size: 6rem;
+    color: var(--accent);
+    filter: drop-shadow(0 0 3px rgba(var(--accent-rgb), 0.2));
+    z-index: 10;
+}
+
+.dh-hero-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--accent);
+    color: var(--surface);
+    padding: 0.4rem 0.8rem;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: var(--shadow-light);
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+    z-index: 3;
+}
+
+.dh-badge-icon {
+    font-size: 1rem;
+}
+
+.dh-hero-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.dh-hero-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(var(--surface-rgb), 0.1);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--surface);
+    backdrop-filter: blur(10px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .dh-hero-section {
+        width: 90%;
+        padding: 2rem;
+    }
+
+    .dh-hero-content {
+        gap: 2rem;
+    }
+
+    .dh-hero-decoration {
+        width: 180px;
+        height: 180px;
+    }
+
+    .dh-brain-icon-main {
+        font-size: 5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dh-hero-section {
+        width: 95%;
+        margin: 1.5rem auto;
+        padding: 1.5rem;
+    }
+
+    .dh-hero-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .dh-hero-left {
+        text-align: center;
+    }
+
+    .dh-hero-title {
+        font-size: 1.8rem;
+    }
+
+    .dh-hero-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .dh-hero-button {
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .dh-hero-decoration {
+        width: 150px;
+        height: 150px;
+        margin-top: 1rem;
+    }
+
+    .dh-brain-icon-main {
+        font-size: 4rem;
+    }
+
+    .dh-hero-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dh-hero-section {
+        margin: 1rem auto;
+        padding: 1.25rem;
+    }
+
+    .dh-hero-title {
+        font-size: 1.6rem;
+    }
+
+    .dh-hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .dh-hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dh-hero-button {
+        width: 100%;
+        padding: 0.8rem 1rem;
+    }
+
+    .dh-hero-decoration {
+        width: 120px;
+        height: 120px;
+    }
+
+    .dh-brain-icon-main {
+        font-size: 3rem;
+    }
+
+    .dh-hero-badge {
+        position: static;
+        margin: 1rem auto 0;
+        width: fit-content;
+    }
+
+    .dh-hero-stats {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dh-hero-stat-item {
+        width: 100%;
+        justify-content: center;
+    }
+}
