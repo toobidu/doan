@@ -83,7 +83,7 @@ export const useProfileEdit = (profileData, setProfileData) => {
         } finally {
             setUpdateLoading(false);
         }
-    }, [formData, profileData, validateProfile, setProfileData]);
+    }, [formData, validateProfile, setProfileData]);
 
     return {
         isEditing,

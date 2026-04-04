@@ -25,7 +25,7 @@ const AIQuestionGenerator = () => {
                 ]);
                 setTopics(topicsRes.data || []);
                 setExams(examsRes.data || []);
-            } catch (error) {
+            } catch {
                 toast.error('Không thể tải dữ liệu');
             } finally {
                 setLoadingTopics(false);

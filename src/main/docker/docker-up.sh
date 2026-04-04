@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../../.."
 
 if [ ! -f src/main/docker/.env ]; then
   cp src/main/docker/.env.example src/main/docker/.env

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { usePopup } from '@shared/hooks/use-popup';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/management.css';
+import { Check, X } from 'lucide-react';
 
 const QuestionManagement = () => {
     const { popup, showSuccess, showError, showConfirm, hidePopup } = usePopup();
@@ -389,7 +390,7 @@ const QuestionManagement = () => {
                                 onClick={() => setShowModal(false)}
                                 aria-label="Đóng"
                             >
-                                ✕
+                                <X size={16} />
                             </button>
                         </div>
                         
@@ -484,7 +485,7 @@ const QuestionManagement = () => {
                                 onClick={() => setShowAnswersModal(false)}
                                 aria-label="Đóng"
                             >
-                                ✕
+                                <X size={16} />
                             </button>
                         </div>
                         
@@ -507,7 +508,7 @@ const QuestionManagement = () => {
                                             <span className="answer-text">{answer.answerText || answer.text}</span>
                                             {answer.isCorrect && (
                                                 <span className="badge-correct-inline">
-                                                    <span className="check-icon">✓</span> Đáp án đúng
+                                                    <span className="check-icon"><Check size={14} /></span> Đáp án đúng
                                                 </span>
                                             )}
                                         </div>

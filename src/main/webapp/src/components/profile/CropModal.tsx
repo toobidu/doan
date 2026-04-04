@@ -66,7 +66,7 @@ const CropModal = ({
                                     onLoad={(e) => {
                                         imageRef.current = e.target;
                                     }}
-                                    onError={(e) => {
+                                    onError={() => {
                                         setUploadError('Không thể tải ảnh để crop');
                                     }}
                                 />

@@ -11,7 +11,7 @@ const authStore = create((set) => ({
   typeAccount: null, // PLAYER, TEACHER, ADMIN
 
   setUser: (user) =>
-      set((state) => {
+      set(() => {
         return {
           user,
           isAuthenticated: !!user,
@@ -56,7 +56,7 @@ const authStore = create((set) => ({
       let decoded;
       try {
         decoded = jwtDecode(token);
-      } catch (decodeError) {
+      } catch {
         // Token không hợp lệ, clear và return
         Cookies.remove('accessToken');
         Cookies.remove('refreshToken');
@@ -99,7 +99,7 @@ const authStore = create((set) => ({
           typeAccount: decoded.typeAccount,
           isLoading: false 
         });
-      } catch (getUserError) {
+      } catch {
         // If getUser fails, keep the basic user with role
         set({ isLoading: false });
       }

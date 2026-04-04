@@ -45,7 +45,7 @@ apiInstance.interceptors.response.use(
 
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return apiInstance(originalRequest);
-            } catch (refreshError) {
+            } catch {
                 Cookies.remove('accessToken');
                 Cookies.remove('refreshToken');
                 authStore.getState().clearUser();

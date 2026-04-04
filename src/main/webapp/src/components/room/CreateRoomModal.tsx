@@ -2,7 +2,18 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
+  FiAlertCircle,
+  FiBookOpen,
+  FiChevronDown,
+  FiClock,
+  FiHelpCircle,
+  FiLoader,
+  FiLock,
+  FiSettings,
+  FiStar,
+  FiUnlock,
   FiUsers,
+  FiX,
   FiZap
 } from 'react-icons/fi';
 import { useTheme } from '@shared/contexts/theme-context';
@@ -13,8 +24,8 @@ import '../../styles/components/room/create-room-modal.css';
 
 function CreateRoomModal({ onClose }) {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const { createRoom, isLoading, error: storeError } = useRoomStore();
+  const { theme } = useTheme() as any;
+  const { createRoom, isLoading, error: storeError } = useRoomStore() as any;
   const { topics, loading: loadingTopics, error: topicsError } = useTopics();
 
   const [roomData, setRoomData] = useState({
@@ -128,11 +139,9 @@ function CreateRoomModal({ onClose }) {
         questionCount: Math.max(5, Math.min(50, numValue))
       });
     } else if (name === 'topicId') {
-      const numValue = parseInt(value) || '';
-      setRoomData({ ...roomData, topicId: numValue, examId: '' });
+      setRoomData({ ...roomData, topicId: value, examId: '' });
     } else if (name === 'examId') {
-      const numValue = parseInt(value) || '';
-      setRoomData({ ...roomData, examId: numValue });
+      setRoomData({ ...roomData, examId: value });
     } else {
       setRoomData({
         ...roomData,
@@ -172,12 +181,12 @@ function CreateRoomModal({ onClose }) {
       const result = await createRoom({
         roomName: roomData.name,
         isPrivate: roomData.isPrivate,
-        maxPlayers: parseInt(roomData.maxPlayers),
+        maxPlayers: Number(roomData.maxPlayers),
         countdownTime: roomData.timeLimit,
         topicId: parseInt(roomData.topicId),
         examId: parseInt(roomData.examId),
         roomMode: roomData.gameMode,
-        questionCount: parseInt(roomData.questionCount)
+        questionCount: Number(roomData.questionCount)
       });
 
       if (result.success) {
@@ -392,7 +401,7 @@ function CreateRoomModal({ onClose }) {
                       >
                         {roomModes.map((mode) => (
                             <option key={mode.value} value={mode.value} disabled={mode.disabled}>
-                              {mode.label} {mode.error ? '⚠️ (Lỗi)' : ''}
+                              {mode.label} {mode.error ? '(Lỗi)' : ''}
                             </option>
                         ))}
                       </select>

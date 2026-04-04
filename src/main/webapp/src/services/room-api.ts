@@ -247,7 +247,6 @@ const roomApi = {
                 mappedRooms = mapRoomsFromBackend(responseData.content);
             } else if (responseData.rooms) {
                 mappedRooms = mapRoomsFromBackend(responseData.rooms);
-            } else {
             }
 
             return {

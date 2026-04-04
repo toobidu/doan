@@ -4,7 +4,7 @@ import socketService from '../services/socket-service';
 import socketManager from '../utils/socket-manager';
 
 /**
- * ✅ ĐÃ SỬA: Kho lưu trữ phòng với cập nhật thời gian thực Socket.IO
+ * [FIXED] Kho lưu trữ phòng với cập nhật thời gian thực Socket.IO
  * Được chuẩn hóa để phù hợp với kiến trúc Kahoot/Quizizz
  */
 const useRoomStore = create((set, get) => ({
@@ -35,7 +35,7 @@ const useRoomStore = create((set, get) => ({
             currentRoom: null,
             roomPlayers: [],
             isConnectedToRoom: false,
-            error: null  // ✅ Xóa mọi lỗi hiện có khi xóa phòng
+            error: null  // [FIXED] Xóa mọi lỗi hiện có khi xóa phòng
         });
 
         // Buộc làm mới danh sách phòng khi xóa phòng hiện tại
@@ -89,7 +89,7 @@ const useRoomStore = create((set, get) => ({
 
             await socketManager.initialize();
 
-            // ✅ Đảm bảo socket được kết nối trước khi đăng ký
+            // [FIXED] Đảm bảo socket được kết nối trước khi đăng ký
             if (!socketManager.isConnected()) {
                 return;
             }
@@ -146,7 +146,7 @@ const useRoomStore = create((set, get) => ({
     },
 
     /**
-     * ✅ ĐÃ SỬA: Kết nối đến phòng với xử lý sự kiện đúng cách
+    * [FIXED] Kết nối đến phòng với xử lý sự kiện đúng cách
      */
     connectToRoom: async (roomId) => {
         try {
@@ -160,7 +160,7 @@ const useRoomStore = create((set, get) => ({
                 return;
             }
 
-            // ✅ SỬA: Lấy roomCode từ currentRoom thay vì sử dụng roomId trực tiếp
+            // [FIXED] Lấy roomCode từ currentRoom thay vì sử dụng roomId trực tiếp
             const state = get();
             const roomCode = state.currentRoom?.roomCode || state.currentRoom?.code || state.currentRoom?.Code;
 
@@ -172,7 +172,7 @@ const useRoomStore = create((set, get) => ({
             // Thiết lập listeners trước - SỬA loại sự kiện để phù hợp với backend
             socketService.subscribeToRoom(roomId, (message) => {
 
-                // ✅ SỬA: Xử lý CHÍNH XÁC loại sự kiện backend
+                // [FIXED] Xử lý CHÍNH XÁC loại sự kiện backend
                 if (message.type === 'PLAYER_JOINED') {
                     // Lấy danh sách người chơi mới thay vì cập nhật thủ công
                     get().fetchRoomPlayers(roomId);
@@ -222,7 +222,7 @@ const useRoomStore = create((set, get) => ({
                 }
             });
 
-            // ✅ SỬA: Tham gia phòng qua Socket.IO sử dụng roomCode thay vì roomId
+            // [FIXED] Tham gia phòng qua Socket.IO sử dụng roomCode thay vì roomId
             return new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
                     set({ error: 'Timeout khi kết nối đến phòng' });
@@ -305,7 +305,7 @@ const useRoomStore = create((set, get) => ({
                 try {
                     await get().connectToRoom(newRoom.id);
                 } catch (connectError) {
-                    // ✅ CẢI THIỆN: Xử lý các lỗi kết nối phổ biến một cách nhẹ nhàng
+                    // [FIXED] Xử lý các lỗi kết nối phổ biến một cách nhẹ nhàng
                     if (connectError.message.includes('Room is full') ||
                         connectError.message.includes('User already joined') ||
                         connectError.message.includes('already joined')) {
@@ -344,7 +344,7 @@ const useRoomStore = create((set, get) => ({
                 const room = response.data;
                 set({ currentRoom: room, isLoading: false, loading: false });
 
-                // ✅ CẢI THIỆN: Xử lý lỗi kết nối nhẹ nhàng cho việc tham gia dựa trên mã
+                // [FIXED] Xử lý lỗi kết nối nhẹ nhàng cho việc tham gia dựa trên mã
                 try {
                     await get().connectToRoom(room.id);
                     return {
@@ -397,7 +397,7 @@ const useRoomStore = create((set, get) => ({
                 const room = response.data;
                 set({ currentRoom: room, isLoading: false, loading: false });
 
-                // ✅ CẢI THIỆN: Xử lý lỗi kết nối nhẹ nhàng cho việc tham gia trực tiếp
+                // [FIXED] Xử lý lỗi kết nối nhẹ nhàng cho việc tham gia trực tiếp
                 try {
                     await get().connectToRoom(room.id);
                     return { success: true, room };
@@ -456,7 +456,7 @@ const useRoomStore = create((set, get) => ({
                     get().fetchRooms();
                 }, 100);
 
-                // ✅ Kích hoạt điều hướng đến RoomPage sau khi rời thành công
+                // [FIXED] Kích hoạt điều hướng đến RoomPage sau khi rời thành công
                 window.dispatchEvent(new CustomEvent('navigateToRoomList', {
                     detail: {
                         reason: 'left_room',
@@ -509,7 +509,7 @@ const useRoomStore = create((set, get) => ({
     },
 
     /**
-     * ✅ ĐÃ SỬA: Lấy người chơi phòng với xử lý lỗi đúng cách
+    * [FIXED] Lấy người chơi phòng với xử lý lỗi đúng cách
      */
     fetchRoomPlayers: async (roomId) => {
         if (!roomId) {
@@ -588,7 +588,7 @@ const useRoomStore = create((set, get) => ({
     // ========== HÀNH ĐỘNG GAME ==========
 
     /**
-     * ✅ ĐÃ SỬA: Bắt đầu game sử dụng Socket.IO
+    * [FIXED] Bắt đầu game sử dụng Socket.IO
      */
     startGame: async () => {
         const state = get();

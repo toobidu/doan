@@ -136,7 +136,7 @@ function Register() {
         setIsSubmitting(false);
       }
     },
-    [formData, validateForm, navigate]
+    [validateForm, errors, formData.username, formData.fullName, formData.email, formData.phoneNumber, formData.address, formData.dob, formData.password, formData.confirmPassword, showSuccess, navigate, showError]
   );
 
   return (
@@ -175,10 +175,10 @@ function Register() {
             { name: 'dob', label: 'Ngày sinh', icon: FaCalendarAlt, type: 'date', placeholder: 'Chọn ngày sinh' },
             { name: 'password', label: 'Mật khẩu', icon: FaLock, type: 'password', placeholder: 'Nhập mật khẩu' },
             { name: 'confirmPassword', label: 'Xác nhận mật khẩu', icon: FaLock, type: 'password', placeholder: 'Nhập lại mật khẩu' },
-          ].map(({ name, label, icon: Icon, type, placeholder }) => (
+          ].map(({ name, label, icon, type, placeholder }) => (
             <div className="form-group" key={name}>
               <label className="register-label" htmlFor={name}>
-                <Icon size={16} color="#667eea" />
+                {icon({ size: 16, color: '#667eea' })}
                 {label}
               </label>
               <input

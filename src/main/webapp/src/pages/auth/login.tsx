@@ -98,7 +98,7 @@ function Login() {
                 setIsSubmitting(false);
             }
         },
-        [formData, validateForm, navigate]
+        [validateForm, formData.username, formData.password, showSuccess, navigate, showWarning, showError]
     );
 
     const togglePasswordVisibility = useCallback(() => {

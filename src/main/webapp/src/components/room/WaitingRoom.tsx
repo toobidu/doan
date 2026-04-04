@@ -297,7 +297,7 @@ const WaitingRoom = () => {
                     </div>
                 </div>
 
-                {/* ✅ FIXED: Players Section with real-time updates */}
+                {/* [FIXED] Players Section with real-time updates */}
                 <div className="players-section">
                     <h3>
                         <FiUsers />

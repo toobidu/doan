@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { CheckCircle2, Flame, HandMetal, X, XCircle } from 'lucide-react';
 import '../../styles/components/room/answer-result-popup.css';
 
 /**
@@ -18,20 +19,20 @@ const AnswerResultPopup = ({ result, onClose }) => {
 
     if (!result) return null;
 
-    const { isCorrect, score, streak, streakMultiplier } = result;
+    const { isCorrect, score, streak } = result;
 
     // Lấy icon và message dựa trên kết quả
     const getResultInfo = () => {
         if (isCorrect) {
             return {
-                icon: <FaCheckCircle />,
+                icon: <CheckCircle2 />,
                 title: 'Đúng rồi!',
                 bgColor: '#4CAF50',
                 animation: 'popup-bounce-in'
             };
         } else {
             return {
-                icon: <FaTimesCircle />,
+                icon: <XCircle />,
                 title: 'Sai rồi!',
                 bgColor: '#f44336',
                 animation: 'popup-shake'
@@ -45,19 +46,19 @@ const AnswerResultPopup = ({ result, onClose }) => {
 
         if (streak >= 10) {
             return {
-                text: <><IoFlame /><IoFlame /><IoFlame /> UNSTOPPABLE!</>,
+                text: <><Flame /><Flame /><Flame /> UNSTOPPABLE!</>,
                 color: '#FF1744',
                 label: 'x2.0 Bonus'
             };
         } else if (streak >= 5) {
             return {
-                text: <><IoFlame /><IoFlame /> ON FIRE!</>,
+                text: <><Flame /><Flame /> ON FIRE!</>,
                 color: '#FF6F00',
                 label: 'x1.5 Bonus'
             };
         } else if (streak >= 3) {
             return {
-                text: <><IoFlame /> FIRE STREAK!</>,
+                text: <><Flame /> FIRE STREAK!</>,
                 color: '#FFC400',
                 label: 'x1.2 Bonus'
             };
@@ -96,12 +97,12 @@ const AnswerResultPopup = ({ result, onClose }) => {
 
                 {!isCorrect && (
                     <div className="popup-message">
-                        Đừng lo! Cố gắng ở câu tiếp theo nhé! <GiMuscleUp />
+                        Đừng lo! Cố gắng ở câu tiếp theo nhé! <HandMetal />
                     </div>
                 )}
 
                 <button className="popup-close-btn" onClick={onClose}>
-                    <FaTimes />
+                    <X />
                 </button>
             </div>
         </div>

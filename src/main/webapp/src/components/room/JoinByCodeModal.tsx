@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { useTheme } from '@shared/contexts/theme-context';
 import useRoomStore from '../../stores/use-room-store';
 import '../../styles/components/room/join-by-code-modal.css';
+import { CircleCheck } from 'lucide-react';
 
 const JoinByCodeModal = ({ isOpen, onClose, onJoin, onSuccess }) => {
   const [roomCode, setRoomCode] = useState('');
@@ -119,7 +120,7 @@ const JoinByCodeModal = ({ isOpen, onClose, onJoin, onSuccess }) => {
               <div className="jbc-input-hint">
                 {roomCode.length === 8
                     ? validateRoomCode(roomCode)
-                        ? 'Mã phòng hợp lệ! Nhấn tham gia để tiếp tục'
+                    ? <><CircleCheck size={14} /> Mã phòng hợp lệ! Nhấn tham gia để tiếp tục</>
                         : 'Mã phòng không hợp lệ'
                     : roomCode.length > 0
                         ? `Đã nhập ${roomCode.length}/8 ký tự`

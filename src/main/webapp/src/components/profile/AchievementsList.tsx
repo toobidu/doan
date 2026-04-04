@@ -1,6 +1,20 @@
 import { useState } from 'react';
 import { getAchievementProgress, getTotalAchievementPoints, TIER_CLASSES } from '../../utils/achievements';
 import '../../styles/components/achievements-list.css';
+import { Award, BookOpen, Check, Crosshair, Crown, Flame, Gem, Lock, Medal, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
+
+const ACHIEVEMENT_ICON_COMPONENTS = {
+  target: Target,
+  flame: Flame,
+  gem: Gem,
+  crown: Crown,
+  zap: Zap,
+  medal: Medal,
+  'book-open': BookOpen,
+  trophy: Trophy,
+  'trending-up': TrendingUp,
+  crosshair: Crosshair,
+};
 
 const AchievementsList = ({ achievements }) => {
   const [showAll, setShowAll] = useState(false);
@@ -19,7 +33,7 @@ const AchievementsList = ({ achievements }) => {
     <div className="achievements-container">
       <div className="achievements-header">
         <h3 className="achievements-title">
-          <FiAward className="title-icon" />
+          <Award className="title-icon" />
           Thành Tựu & Huy Chương
         </h3>
         <div className="achievements-stats">
@@ -48,7 +62,10 @@ const AchievementsList = ({ achievements }) => {
 
       {/* Achievements Grid */}
       <div className="achievements-grid">
-        {displayedAchievements.map((achievement) => (
+        {displayedAchievements.map((achievement) => {
+          const AchievementIcon = ACHIEVEMENT_ICON_COMPONENTS[achievement.icon] || Award;
+
+          return (
           <div
             key={achievement.id}
             className={`achievement-card ${achievement.earned ? 'earned' : 'locked'} ${TIER_CLASSES[achievement.tier]}`}
@@ -56,9 +73,9 @@ const AchievementsList = ({ achievements }) => {
           >
             <div className="achievement-icon">
               {achievement.earned ? (
-                <span className="icon-emoji">{achievement.icon}</span>
+                <AchievementIcon size={24} />
               ) : (
-                <FiLock className="lock-icon" />
+                <Lock className="lock-icon" />
               )}
             </div>
             <div className="achievement-info">
@@ -71,11 +88,12 @@ const AchievementsList = ({ achievements }) => {
             </div>
             {achievement.earned && (
               <div className="achievement-badge">
-                <span className="badge-checkmark">✓</span>
+                <span className="badge-checkmark"><Check size={14} /></span>
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Show More Button */}
@@ -93,7 +111,7 @@ const AchievementsList = ({ achievements }) => {
       {/* Empty State */}
       {achievements.length === 0 && (
         <div className="achievements-empty">
-          <FiAward className="empty-icon" />
+          <Award className="empty-icon" />
           <p>Chưa có thành tựu nào. Hãy chơi game để mở khóa!</p>
         </div>
       )}

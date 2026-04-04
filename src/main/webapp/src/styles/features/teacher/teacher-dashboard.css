@@ -175,6 +175,9 @@
     font-size: 0.9rem;
     color: var(--text-secondary);
     line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .quick-tips li:last-child {
@@ -182,9 +185,9 @@
     padding-bottom: 0;
 }
 
-.quick-tips li::before {
-    content: '💡';
-    margin-right: 0.5rem;
+.quick-tips li svg {
+    color: var(--primary);
+    flex-shrink: 0;
 }
 
 @media (max-width: 1024px) {

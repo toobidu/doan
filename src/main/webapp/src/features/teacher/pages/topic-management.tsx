@@ -17,10 +17,6 @@ const TopicManagement = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [sortOrder, setSortOrder] = useState('asc');
 
-    useEffect(() => {
-        loadTopics();
-    }, [currentPage, sortOrder, searchTerm]);
-
     const loadTopics = useCallback(async () => {
         try {
             setLoading(true);
@@ -42,6 +38,10 @@ const TopicManagement = () => {
         }
     }, [currentPage, sortOrder, searchTerm]);
 
+    useEffect(() => {
+        loadTopics();
+    }, [loadTopics]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -58,7 +58,7 @@ const TopicManagement = () => {
             // Reset về trang đầu sau khi tạo/cập nhật
             setCurrentPage(0);
             loadTopics();
-        } catch (error) {
+        } catch {
             toast.error(editingTopic ? 'Không thể cập nhật chủ đề' : 'Không thể tạo chủ đề');
         }
     };
@@ -91,7 +91,7 @@ const TopicManagement = () => {
             await teacherApi.deleteTopic(id);
             toast.success('Xóa chủ đề thành công');
             loadTopics();
-        } catch (error) {
+        } catch {
             toast.error('Không thể xóa chủ đề');
         }
     };

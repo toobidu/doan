@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/teacher-dashboard.css';
+import { Lightbulb } from 'lucide-react';
 
 const TeacherDashboard = () => {
     const [stats, setStats] = useState({ exams: 0, questions: 0 });
@@ -78,10 +79,10 @@ const TeacherDashboard = () => {
                     <div className="sidebar-section">
                         <h3><FiZap /> Mẹo sử dụng</h3>
                         <ul className="quick-tips">
-                            <li>Tạo bộ đề trước khi thêm câu hỏi</li>
-                            <li>Dùng AI để tạo câu hỏi nhanh chóng</li>
-                            <li>Đặt tên bộ đề rõ ràng, dễ tìm</li>
-                            <li>Kiểm tra kỹ trước khi sử dụng</li>
+                            <li><Lightbulb size={14} /> Tạo bộ đề trước khi thêm câu hỏi</li>
+                            <li><Lightbulb size={14} /> Dùng AI để tạo câu hỏi nhanh chóng</li>
+                            <li><Lightbulb size={14} /> Đặt tên bộ đề rõ ràng, dễ tìm</li>
+                            <li><Lightbulb size={14} /> Kiểm tra kỹ trước khi sử dụng</li>
                         </ul>
                     </div>
                 </div>

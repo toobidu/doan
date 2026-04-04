@@ -162,7 +162,7 @@ class SocketService {
         }
     }
 
-    emit(event, data, callback) {
+    emit(event, data, callback = null) {
         if (!this.socket || !this.connected) {
             return;
         }
@@ -190,7 +190,7 @@ class SocketService {
         this.listeners.get(event).push(callback);
     }
 
-    off(event, callback) {
+    off(event, callback = null) {
         if (!this.socket) return;
 
         if (callback) {
@@ -235,7 +235,7 @@ class SocketService {
             callback?.({ success: false, error: 'Join room timeout' });
         }, 10000);
 
-        // ✅ ĐÃ SỬA: Backend mong đợi roomCode, không phải roomId
+        // [FIXED] Backend mong đợi roomCode, không phải roomId
         const joinData = { roomCode: String(roomCodeOrId) };
 
         // Lắng nghe sự kiện thành công/lỗi

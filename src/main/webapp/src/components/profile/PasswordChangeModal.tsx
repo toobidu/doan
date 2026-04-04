@@ -1,4 +1,5 @@
 import '../../styles/components/profile/password-change-modal.css';
+import { Lock } from 'lucide-react';
 
 const PasswordChangeModal = ({
     showModal,
@@ -37,7 +38,7 @@ const PasswordChangeModal = ({
                 <div className="pf-password-modal-body">
                     <div className="pf-password-form">
                         <div className="pf-password-field">
-                            <label className="pf-password-label">Mật khẩu hiện tại</label>
+                            <label className="pf-password-label"><Lock size={14} /> Mật khẩu hiện tại</label>
                             <input
                                 type="password"
                                 name="currentPassword"
@@ -53,7 +54,7 @@ const PasswordChangeModal = ({
                         </div>
 
                         <div className="pf-password-field">
-                            <label className="pf-password-label">Mật khẩu mới</label>
+                            <label className="pf-password-label"><Lock size={14} /> Mật khẩu mới</label>
                             <input
                                 type="password"
                                 name="newPassword"
@@ -69,7 +70,7 @@ const PasswordChangeModal = ({
                         </div>
 
                         <div className="pf-password-field">
-                            <label className="pf-password-label">Xác nhận mật khẩu mới</label>
+                            <label className="pf-password-label"><Lock size={14} /> Xác nhận mật khẩu mới</label>
                             <input
                                 type="password"
                                 name="confirmPassword"

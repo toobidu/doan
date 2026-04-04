@@ -3,7 +3,7 @@ import '../../styles/components/profile/profile-stats-loading.css';
 import { useStats } from '../../hooks/use-stats';
 import { formatScore, formatRank, formatTime } from '../../utils/stats-utils';
 
-const ProfileStats = ({ profileData }) => {
+const ProfileStats = () => {
     const { stats, loading: statsLoading, error: statsError } = useStats('profile');
     
     const displayStats = stats || {};

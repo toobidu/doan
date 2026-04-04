@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import authApi from '../../services/auth-api';
 import '../../styles/pages/verify-email.css';
@@ -9,19 +9,7 @@ const VerifyEmail = () => {
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    const token = searchParams.get('token');
-
-    if (!token) {
-      setStatus('error');
-      setMessage('Token xác thực không hợp lệ.');
-      return;
-    }
-
-    handleVerifyEmail(token);
-  }, [searchParams]);
-
-  const handleVerifyEmail = async (token) => {
+  const handleVerifyEmail = useCallback(async (token) => {
     try {
       const response = await authApi.verifyEmail(token);
 
@@ -40,7 +28,19 @@ const VerifyEmail = () => {
       setStatus('error');
       setMessage(error.message || 'Có lỗi xảy ra khi xác thực email.');
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+
+    if (!token) {
+      setStatus('error');
+      setMessage('Token xác thực không hợp lệ.');
+      return;
+    }
+
+    handleVerifyEmail(token);
+  }, [handleVerifyEmail, searchParams]);
 
   const handleGoToLogin = () => {
     navigate('/login');

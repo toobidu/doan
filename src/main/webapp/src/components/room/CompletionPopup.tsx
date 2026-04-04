@@ -1,5 +1,6 @@
 import React from 'react';
 import '../../styles/components/room/completion-popup.css';
+import { PartyPopper, Sparkles, X } from 'lucide-react';
 
 /**
  * CompletionPopup - Popup khi player hoàn thành tất cả câu hỏi
@@ -27,13 +28,13 @@ const CompletionPopup = ({ onClose }) => {
                 </div>
 
                 <div className="completion-content">
-                    <div className="completion-icon"><MdCelebration size={48} color="#FFD700" /></div>
+                    <div className="completion-icon"><PartyPopper size={48} color="#FFD700" /></div>
                     <h2 className="completion-title">Hoàn Thành!</h2>
                     <p className="completion-message">
                         Bạn đã trả lời xong tất cả câu hỏi!
                     </p>
                     <div className="completion-emoji">
-                        <MdAutoAwesome size={32} color="#FFD700" /> <GiPartyPopper size={32} color="#FF6B6B" /> <MdAutoAwesome size={32} color="#FFD700" />
+                        <Sparkles size={32} color="#FFD700" /> <PartyPopper size={32} color="#FF6B6B" /> <Sparkles size={32} color="#FFD700" />
                     </div>
                     <p className="completion-waiting">
                         Đang chờ các người chơi khác...
@@ -47,7 +48,7 @@ const CompletionPopup = ({ onClose }) => {
 
                 {onClose && (
                     <button className="completion-close" onClick={onClose}>
-                        <MdClose size={24} />
+                        <X size={24} />
                     </button>
                 )}
             </div>

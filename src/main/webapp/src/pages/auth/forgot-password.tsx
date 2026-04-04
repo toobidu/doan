@@ -4,6 +4,7 @@ import authApi from '../../services/auth-api';
 import authStore from '../../stores/auth-store';
 import { usePopup } from '@shared/hooks/use-popup';
 import '../../styles/pages/auth/forgot-password.css';
+import { CheckCircle } from 'lucide-react';
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ function ForgotPassword() {
         setIsSubmitting(false);
       }
     },
-    [email, validateEmail]
+    [email, showError, showSuccess, validateEmail]
   );
 
   return (
@@ -103,7 +104,7 @@ function ForgotPassword() {
         {successMessage && (
           <div className="fp-success-container">
             <div className="fp-success-message">
-              <span className="fp-success-icon">✓</span>
+              <span className="fp-success-icon"><CheckCircle size={18} /></span>
               <span>{successMessage}</span>
             </div>
             <div className="fp-success-actions">

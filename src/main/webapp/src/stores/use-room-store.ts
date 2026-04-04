@@ -177,7 +177,7 @@ const useRoomStore = create((set, get) => ({
         socketService.off('player-kicked');
         socketService.off('game-started');
         socketService.off('room-players');
-        socketService.off('host-changed'); // ✅ NEW: Clean up host-changed listener
+        socketService.off('host-changed'); // [FIXED] Clean up host-changed listener
     },
 
     // Hoạt động CRUD phòng

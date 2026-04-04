@@ -15,7 +15,7 @@ function Welcome() {
         const initializeAuth = async () => {
             try {
                 await authStore.getState().initialize();
-            } catch (error) {
+            } catch {
             } finally {
                 setIsInitialized(true);
             }

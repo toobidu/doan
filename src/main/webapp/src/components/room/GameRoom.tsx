@@ -1,15 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FaCrown, FaMedal } from 'react-icons/fa';
 import socketService from '../../services/socket-service';
 import authStore from '../../stores/auth-store';
 import useRoomStore from '../../stores/use-room-store-realtime';
+import AnswerResultPopup from './AnswerResultPopup';
+import CompletionPopup from './CompletionPopup';
+import GameStartPopup from './GameStartPopup';
+import NotificationPopup from './NotificationPopup';
 import '../../styles/components/room/game-room.css';
+
+const formatTime = (seconds) => {
+    const safe = Math.max(0, Number(seconds) || 0);
+    const mins = Math.floor(safe / 60);
+    const secs = safe % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
 
 const GameRoom = () => {
     const { roomCode } = useParams();
     const navigate = useNavigate();
-    const currentUser = authStore((state) => state.user);
-    const { currentRoom } = useRoomStore();
+    const currentUser = authStore((state: any) => state.user);
+    const { currentRoom } = useRoomStore() as any;
 
     const [gameState, setGameState] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(null);

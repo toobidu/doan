@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './PopupNotification.css';
 
 const PopupNotification = ({ 
@@ -17,6 +17,13 @@ const PopupNotification = ({
 }) => {
     const [show, setShow] = useState(isVisible);
 
+    const handleClose = useCallback(() => {
+        setShow(false);
+        setTimeout(() => {
+            onClose?.();
+        }, 300);
+    }, [onClose]);
+
     useEffect(() => {
         setShow(isVisible);
         
@@ -27,14 +34,7 @@ const PopupNotification = ({
             
             return () => clearTimeout(timer);
         }
-    }, [isVisible, autoClose, duration, showConfirm]);
-
-    const handleClose = () => {
-        setShow(false);
-        setTimeout(() => {
-            onClose?.();
-        }, 300);
-    };
+    }, [isVisible, autoClose, duration, showConfirm, handleClose]);
 
     const handleConfirm = () => {
         onConfirm?.();

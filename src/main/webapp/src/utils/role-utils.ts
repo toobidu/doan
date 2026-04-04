@@ -110,11 +110,11 @@ export const getRoleColor = (role) => {
  */
 export const getRoleIcon = (role) => {
   const roleIcons = {
-    [ROLES.PLAYER]: "🎮",
-    [ROLES.TEACHER]: "👨‍🏫",
-    [ROLES.ADMIN]: "👑",
+    [ROLES.PLAYER]: "gamepad",
+    [ROLES.TEACHER]: "graduation-cap",
+    [ROLES.ADMIN]: "shield",
   };
-  return roleIcons[role] || "👤";
+  return roleIcons[role] || "user";
 };
 
 export default {

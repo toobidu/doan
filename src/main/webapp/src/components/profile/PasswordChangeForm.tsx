@@ -4,7 +4,6 @@ const PasswordChangeForm = ({
     isChangingPassword,
     passwordData,
     formErrors,
-    updateLoading,
     handlePasswordChange
 }) => {
     if (!isChangingPassword) return null;

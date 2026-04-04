@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-Set-Location (Join-Path $PSScriptRoot '..')
+Set-Location (Join-Path $PSScriptRoot '..\..\..')
 
 $envFile = 'src/main/docker/.env'
 if (-not (Test-Path $envFile)) {

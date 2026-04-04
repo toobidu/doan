@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useRoomStore from '../../stores/use-room-store';
 import '../../styles/components/room/player-list.css';
 
-const PlayerList = ({ roomId, isHost }) => {
+const PlayerList = () => {
     const { roomPlayers, currentRoom } = useRoomStore();
     const [animatingPlayers, setAnimatingPlayers] = useState(new Set());
     const [playerStates, setPlayerStates] = useState(new Map());
+    const previousPlayerIdsRef = useRef(new Set());
 
     // Track player changes for animations
     useEffect(() => {
         const currentPlayerIds = new Set(roomPlayers.map(p => p.id));
-        const previousPlayerIds = new Set(Array.from(playerStates.keys()));
+        const previousPlayerIds = new Set(Array.from(previousPlayerIdsRef.current));
 
         // Find newly joined players
         const newPlayers = roomPlayers.filter(p => !previousPlayerIds.has(p.id));
@@ -52,6 +53,7 @@ const PlayerList = ({ roomId, isHost }) => {
             newStates.set(player.id, player);
         });
         setPlayerStates(newStates);
+        previousPlayerIdsRef.current = currentPlayerIds;
 
     }, [roomPlayers]);
 

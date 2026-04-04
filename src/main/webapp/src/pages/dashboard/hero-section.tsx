@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import '../../styles/pages/dashboard/hero-section.css';
 
-function HeroSection({ userName, stats }) {
+function HeroSection({ userName }) {
     const navigate = useNavigate();
 
     return (

@@ -43,7 +43,7 @@ class SocketManager {
 
             await socketService.connect(token);
             this.isInitialized = true;
-        } catch (error) {
+        } catch {
             this.connectionPromise = null;
             this.isInitialized = false;
 
@@ -101,7 +101,7 @@ class SocketManager {
             const authStore = require('../stores/auth-store').default;
             const user = authStore.getState().user;
             return user?.id;
-        } catch (error) {
+        } catch {
             return null;
         }
     }
@@ -115,7 +115,6 @@ class SocketManager {
         await this.initialize();
         if (this.isConnected()) {
             callback();
-        } else {
         }
     }
 

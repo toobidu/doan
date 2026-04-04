@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import '../../../styles/features/teacher/aiprompt-modal.css';
+import { Check, Sparkles } from 'lucide-react';
 
 const AIPromptModal = ({ isOpen, onClose, onConfirm, loading, generatedQuestions, onEdit, onDelete }) => {
     const [prompt, setPrompt] = useState('');
@@ -23,7 +24,7 @@ const AIPromptModal = ({ isOpen, onClose, onConfirm, loading, generatedQuestions
         <div className="ai-modal-overlay" onClick={onClose}>
             <div className="ai-modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="ai-modal-header">
-                    <h2>✨ Tạo câu hỏi bằng AI</h2>
+                    <h2><Sparkles size={18} /> Tạo câu hỏi bằng AI</h2>
                     <button onClick={onClose} className="ai-close-btn">
                         <FiX />
                     </button>
@@ -42,10 +43,10 @@ const AIPromptModal = ({ isOpen, onClose, onConfirm, loading, generatedQuestions
                         <div className="ai-prompt-tips">
                             <strong>Mẹo viết prompt hiệu quả:</strong>
                             <ul>
-                                <li>Chỉ rõ số lượng câu hỏi cần tạo</li>
-                                <li>Mô tả rõ nội dung, phạm vi kiến thức</li>
-                                <li>Nêu rõ độ khó mong muốn (dễ/trung bình/khó)</li>
-                                <li>Yêu cầu thêm chi tiết về định dạng đáp án</li>
+                                                        <li><Check size={14} /> Chỉ rõ số lượng câu hỏi cần tạo</li>
+                                                        <li><Check size={14} /> Mô tả rõ nội dung, phạm vi kiến thức</li>
+                                                        <li><Check size={14} /> Nêu rõ độ khó mong muốn (dễ/trung bình/khó)</li>
+                                                        <li><Check size={14} /> Yêu cầu thêm chi tiết về định dạng đáp án</li>
                             </ul>
                         </div>
                         <button
@@ -121,7 +122,7 @@ const AIPromptModal = ({ isOpen, onClose, onConfirm, loading, generatedQuestions
                                                     {q.answers?.map((ans, aIdx) => (
                                                         <div key={aIdx} className={ans.isCorrect ? 'correct' : ''}>
                                                             {String.fromCharCode(65 + aIdx)}. {ans.answerText || ans.text}
-                                                            {ans.isCorrect && ' ✓'}
+                                                            {ans.isCorrect && <Check size={14} />}
                                                         </div>
                                                     ))}
                                                 </div>

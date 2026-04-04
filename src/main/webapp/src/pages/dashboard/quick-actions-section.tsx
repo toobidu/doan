@@ -8,7 +8,7 @@ const quickActions = [
     { title: 'Hồ sơ cá nhân', desc: 'Xem thống kê của bạn', action: (navigate) => navigate('/profile') },
 ];
 
-function QuickActionsSection({ onLogout }) {
+function QuickActionsSection() {
     const navigate = useNavigate();
     const { user } = authStore();
 

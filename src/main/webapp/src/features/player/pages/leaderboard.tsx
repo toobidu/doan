@@ -27,7 +27,7 @@ function Leaderboard() {
                 setTopics(result.data);
                 setSelectedTopic(result.data[0].id);
             }
-        } catch (err) {
+        } catch {
             setError('Không thể tải danh sách chủ đề');
         }
     };
@@ -42,7 +42,7 @@ function Leaderboard() {
             } else {
                 setError(result.error);
             }
-        } catch (err) {
+        } catch {
             setError('Không thể tải bảng xếp hạng');
         } finally {
             setLoading(false);

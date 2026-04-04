@@ -2,10 +2,8 @@ import '../../styles/components/profile/edit-actions.css';
 
 const EditActions = ({
     isEditing,
-    isChangingPassword,
     updateLoading,
     handleUpdateProfile,
-    handleOpenPasswordModal,
     setIsEditing,
     setIsChangingPassword,
     setFormErrors

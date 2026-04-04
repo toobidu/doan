@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import useGameStore from '../../stores/use-game-store';
 import '../../styles/components/room/game-play.css';
+import { CircleCheck, CircleX, Clock3, Trophy } from 'lucide-react';
 
 /**
  * GamePlay Component - Real-time quiz gameplay
  * Similar to Kahoot/Quizizz game interface
  */
 const GamePlay = ({ isHost, onLeave }) => {
-    const { roomId } = useParams();
-
     const {
         currentQuestion,
         currentQuestionIndex,
@@ -21,7 +19,7 @@ const GamePlay = ({ isHost, onLeave }) => {
         players,
         submitAnswer,
         nextQuestion
-    } = useGameStore();
+    } = useGameStore() as any;
 
     const [showResults, setShowResults] = useState(false);
 
@@ -73,7 +71,7 @@ const GamePlay = ({ isHost, onLeave }) => {
                 </div>
                 <div className="timer-display">
                     <span className={timeRemaining <= 5 ? 'timer-critical' : ''}>
-                        ⏱️ {timeRemaining}s
+                        <Clock3 size={16} /> {timeRemaining}s
                     </span>
                 </div>
                 <button className="btn-leave" onClick={onLeave}>
@@ -118,7 +116,7 @@ const GamePlay = ({ isHost, onLeave }) => {
                 <div className="answer-result-section">
                     <div className={`result-card ${answerResult?.isCorrect ? 'correct' : 'incorrect'}`}>
                         <div className="result-icon">
-                            {answerResult?.isCorrect ? '✅' : '❌'}
+                            {answerResult?.isCorrect ? <CircleCheck size={28} /> : <CircleX size={28} />}
                         </div>
                         <h3>
                             {answerResult?.isCorrect ? 'Chính xác!' : 'Sai rồi!'}
@@ -157,7 +155,7 @@ const GamePlay = ({ isHost, onLeave }) => {
 
             {/* Mini Leaderboard */}
             <div className="mini-leaderboard">
-                <h4>🏆 Top 3</h4>
+                <h4><Trophy size={16} /> Top 3</h4>
                 <div className="top-players">
                     {players.slice(0, 3).map((player, index) => (
                         <div key={player.userId} className="top-player">

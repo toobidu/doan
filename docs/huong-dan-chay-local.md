@@ -41,14 +41,14 @@ Tất cả tệp Docker nằm trong thư mục `src/main/docker`.
 ### Windows PowerShell
 
 ```powershell
-./scripts/docker-up.ps1
+./src/main/docker/docker-up.ps1
 ```
 
 ### Linux/macOS
 
 ```bash
-chmod +x scripts/docker-up.sh scripts/docker-down.sh
-./scripts/docker-up.sh
+chmod +x src/main/docker/docker-up.sh src/main/docker/docker-down.sh
+./src/main/docker/docker-up.sh
 ```
 
 Lệnh trên sẽ khởi động:
@@ -68,13 +68,13 @@ Sau khi container chạy:
 Windows:
 
 ```powershell
-./scripts/docker-down.ps1
+./src/main/docker/docker-down.ps1
 ```
 
 Linux/macOS:
 
 ```bash
-./scripts/docker-down.sh
+./src/main/docker/docker-down.sh
 ```
 
 ## 4. Build Một Artifact (JAR Đã Nhúng Frontend)

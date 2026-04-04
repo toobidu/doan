@@ -349,9 +349,9 @@
   font-style: normal;
 }
 
-.jbc-code-input-container.has-8-char .jbc-input-hint::before {
-  content: '✓ ';
-  font-weight: bold;
+.jbc-code-input-container.has-8-char .jbc-input-hint svg {
+  margin-right: 6px;
+  vertical-align: text-bottom;
 }
 
 /* Progress hint for partial input */

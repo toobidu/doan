@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import useGameStore from '../../stores/use-game-store';
 import '../../styles/components/room/game-results.css';
+import { BarChart3, Crown, Medal, Trophy } from 'lucide-react';
 
 /**
  * GameResults Component - Final leaderboard and statistics
@@ -11,8 +12,7 @@ const GameResults = ({ onExit, gameResults }) => {
 
     const {
         leaderboard: storeLeaderboard,
-        totalQuestions,
-        players
+        totalQuestions
     } = useGameStore();
 
     const leaderboard = gameResults?.ranking || storeLeaderboard;
@@ -26,16 +26,11 @@ const GameResults = ({ onExit, gameResults }) => {
         navigate('/dashboard');
     };
 
-    /**
-     * Get medal emoji for ranking
-     */
-    const getMedal = (rank) => {
-        switch (rank) {
-            case 1: return '🥇';
-            case 2: return '🥈';
-            case 3: return '🥉';
-            default: return '🏅';
-        }
+    const getRankIcon = (rank) => {
+        if (rank === 1) return <Crown size={16} />;
+        if (rank === 2) return <Medal size={16} />;
+        if (rank === 3) return <Medal size={16} />;
+        return <Medal size={16} />;
     };
 
     /**
@@ -84,7 +79,7 @@ const GameResults = ({ onExit, gameResults }) => {
 
             {/* Podium - Top 3 */}
             <div className="podium-section">
-                <h2>🏆 Podium</h2>
+                <h2><Trophy size={18} /> Podium</h2>
                 <div className="podium">
                     {leaderboard.slice(0, 3).map((player, index) => {
                         const podiumOrder = index === 0 ? 0 : index === 1 ? 2 : 1; // Center winner
@@ -104,7 +99,7 @@ const GameResults = ({ onExit, gameResults }) => {
                                         }}
                                     />
                                 </div>
-                                <div className="medal">{getMedal(rank)}</div>
+                                <div className="medal">{getRankIcon(rank)}</div>
                                 <h3>{player.userName || `User${player.userId}`}</h3>
                                 <p className="score">{player.totalScore || 0} điểm</p>
                                 <div className={`podium-base rank-${rank}`}>
@@ -118,7 +113,7 @@ const GameResults = ({ onExit, gameResults }) => {
 
             {/* Full Leaderboard */}
             <div className="leaderboard-section">
-                <h2>📊 Bảng xếp hạng</h2>
+                <h2><BarChart3 size={18} /> Bảng xếp hạng</h2>
                 <div className="leaderboard-table">
                     <div className="leaderboard-header">
                         <span>Hạng</span>
@@ -135,7 +130,7 @@ const GameResults = ({ onExit, gameResults }) => {
                                     className={`leaderboard-row ${rank <= 3 ? 'top-three' : ''}`}
                                 >
                                     <span className="rank">
-                                        {rank <= 3 ? getMedal(rank) : `#${rank}`}
+                                        {rank <= 3 ? getRankIcon(rank) : `#${rank}`}
                                     </span>
                                     <span className="player-name">
                                         <img

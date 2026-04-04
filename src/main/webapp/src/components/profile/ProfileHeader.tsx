@@ -9,7 +9,6 @@ const ProfileHeader = ({
     isEditing,
     isChangingPassword,
     setIsEditing,
-    setIsChangingPassword,
     handleFileSelect,
     uploadingAvatar,
     setUser,
@@ -27,16 +26,14 @@ const ProfileHeader = ({
                         src={avatarUrl}
                         alt={`${profileData.username}'s avatar`}
                         className="pf-avatar-image"
-                        onError={(e) => {
-                        }}
+                        onError={() => {}}
                     />
                 ) : profileData.avatarURL ? (
                     <img
                         src={getAvatarUrl(profileData.avatarURL)}
                         alt={`${profileData.username}'s avatar`}
                         className="pf-avatar-image"
-                        onError={(e) => {
-                        }}
+                        onError={() => {}}
                     />
                 ) : null}
                 <div

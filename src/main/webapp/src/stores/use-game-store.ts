@@ -76,7 +76,7 @@ const useGameStore = create((set, get) => ({
     /**
      * Handle game started event
      */
-    onGameStarted: (data) => {
+    onGameStarted: (_data) => {
         set({
             isGameActive: true,
             isGameStarting: false,
@@ -191,7 +191,7 @@ const useGameStore = create((set, get) => ({
     /**
      * Handle game finished
      */
-    onGameFinished: (data) => {
+    onGameFinished: (_data) => {
         get().stopTimer();
 
         set({
