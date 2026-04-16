@@ -1,4 +1,5 @@
 import { useTheme } from '@shared/contexts/theme-context';
+import { FiMoon, FiSun } from 'react-icons/fi';
 import "../styles/components/theme-toggle.css";
 
 const ThemeToggle = () => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { FiAlertCircle, FiAlertTriangle, FiCheck, FiInfo, FiX } from 'react-icons/fi';
 import './PopupNotification.css';
 
 const PopupNotification = ({ 

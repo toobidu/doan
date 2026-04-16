@@ -1,10 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaBrain, FaEnvelope, FaExclamationCircle } from 'react-icons/fa';
+import { IoArrowBackSharp } from 'react-icons/io5';
 import authApi from '../../services/auth-api';
 import authStore from '../../stores/auth-store';
 import { usePopup } from '@shared/hooks/use-popup';
+import PopupNotification from '@shared/components/PopupNotification';
 import '../../styles/pages/auth/forgot-password.css';
 import { CheckCircle } from 'lucide-react';
+import Decoration from '../../shared/components/Decoration';
 
 function ForgotPassword() {
   const navigate = useNavigate();

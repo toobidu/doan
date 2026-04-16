@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { FiAlertCircle, FiArrowRight, FiHash, FiInfo, FiKey, FiX } from 'react-icons/fi';
 import { useTheme } from '@shared/contexts/theme-context';
 import useRoomStore from '../../stores/use-room-store';
 import '../../styles/components/room/join-by-code-modal.css';
 import { CircleCheck } from 'lucide-react';
 
-const JoinByCodeModal = ({ isOpen, onClose, onJoin, onSuccess }) => {
+const JoinByCodeModal = ({ isOpen, onClose, onJoin, onSuccess }: any) => {
   const [roomCode, setRoomCode] = useState('');
   const { theme } = useTheme();
   const { joinRoomByCode, isLoading, error: storeError } = useRoomStore();
 
-  const validateRoomCode = (code) => {
+  const validateRoomCode = (code: string) => {
     return /^[A-Z0-9]{8}$/.test(code);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!roomCode.trim()) {
       toast.error('Vui lòng nhập mã phòng');
@@ -35,23 +36,23 @@ const JoinByCodeModal = ({ isOpen, onClose, onJoin, onSuccess }) => {
       } else {
         toast.error(result.error || 'Không thể tham gia phòng');
       }
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || 'Có lỗi xảy ra khi tham gia phòng');
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     setRoomCode(value.substring(0, 8));
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (roomCode.length >= 8 && e.key !== 'Backspace' && e.key !== 'Delete' && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
     }
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     if (roomCode.length >= 8) {
       e.preventDefault();
       return;
@@ -67,8 +68,8 @@ const JoinByCodeModal = ({ isOpen, onClose, onJoin, onSuccess }) => {
     onClose();
   };
 
-  const handleOverlayClick = (e) => {
-    if (e.target.classList.contains('jbc-overlay')) {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).classList.contains('jbc-overlay')) {
       handleClose();
     }
   };

@@ -2,8 +2,9 @@ import { create } from 'zustand';
 import roomApi from '../services/room-api';
 import socketService from '../services/socket-service';
 import socketManager from '../utils/socket-manager';
+import { adaptRealtimeRoomPayload } from '../utils/room-utils';
 
-const useRoomStore = create((set, get) => ({
+const useRoomStore = create<any>((set, get) => ({
     // Trạng thái phòng
     currentRoom: null,
     rooms: [],
@@ -412,7 +413,7 @@ const useRoomStore = create((set, get) => ({
             socketService.subscribeToRoomList((message) => {
 
                 if (message.type === 'CREATE_ROOM') {
-                    const room = message.data?.room || message.data;
+                    const room = adaptRealtimeRoomPayload(message.data?.room || message.data);
                     if (room && room.id) {
                         set(state => {
                             const exists = state.rooms.find(r => r.id === room.id);
@@ -437,7 +438,7 @@ const useRoomStore = create((set, get) => ({
                         });
                     }
                 } else if (message.type === 'ROOM_UPDATED') {
-                    const room = message.data?.room || message.data;
+                    const room = adaptRealtimeRoomPayload(message.data?.room || message.data);
                     if (room && room.id) {
                         set(state => ({
                             rooms: state.rooms.map(r => r.id === room.id ? room : r),

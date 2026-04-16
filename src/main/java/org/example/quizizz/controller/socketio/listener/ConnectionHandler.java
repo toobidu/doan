@@ -4,6 +4,8 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import org.example.quizizz.controller.socketio.session.SessionManager;
+import org.example.quizizz.model.entity.Room;
+import org.example.quizizz.repository.RoomRepository;
 import org.example.quizizz.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class ConnectionHandler {
 
     private final JwtUtil jwtUtil;
     private final SessionManager sessionManager;
+    private final RoomRepository roomRepository;
 
     public void registerListeners(SocketIOServer server) {
         server.addConnectListener(onConnect());
@@ -61,10 +64,13 @@ public class ConnectionHandler {
             Long roomId = sessionManager.getRoomId(sessionId);
 
             if (userId != null && roomId != null) {
-                server.getRoomOperations("room-" + roomId)
-                        .sendEvent("player-disconnected", Map.of(
-                                "userId", userId,
-                                "temporary", true));
+                Room room = roomRepository.findById(roomId).orElse(null);
+                if (room != null) {
+                    server.getRoomOperations("room-" + room.getRoomCode())
+                            .sendEvent("player-disconnected", Map.of(
+                                    "userId", userId,
+                                    "temporary", true));
+                }
                 log.info("User {} disconnected from room {} (temporary)", userId, roomId);
             }
 

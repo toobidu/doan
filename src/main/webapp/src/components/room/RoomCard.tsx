@@ -1,15 +1,16 @@
 import { useState } from 'react';
+import { FiHash, FiLock, FiPlay, FiUnlock, FiUsers } from 'react-icons/fi';
 import useRoomStore from '../../stores/use-room-store';
 import '../../styles/components/room/room-card.css';
 
-const RoomCard = ({ room, onJoinPublic }) => {
+const RoomCard = ({ room, onJoinPublic }: any) => {
   const { animatingRooms, newRoomIds } = useRoomStore();
   const [isJoining, setIsJoining] = useState(false);
 
   const isAnimating = animatingRooms.has(room.id);
   const isNew = newRoomIds.has(room.id);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'waiting': return '#10b981';
       case 'playing': return '#f59e0b';
@@ -18,7 +19,7 @@ const RoomCard = ({ room, onJoinPublic }) => {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'waiting': return 'Sẵn sàng';
       case 'playing': return 'Đang chơi';
@@ -27,7 +28,7 @@ const RoomCard = ({ room, onJoinPublic }) => {
     }
   };
 
-  const getGameModeText = (gameMode) => {
+  const getGameModeText = (gameMode: string) => {
     return gameMode?.toLowerCase() === 'one_vs_one' ? '1 vs 1' : 'Battle Royale';
   };
 
@@ -83,7 +84,7 @@ const RoomCard = ({ room, onJoinPublic }) => {
               <span className="room-card-detail-value">{getGameModeText(room.roomMode)}</span>
             </div>
             <div className="room-card-detail-item">
-              <IoPeople />
+              <FiUsers />
               <span className="room-card-detail-label">Người chơi:</span>
               <span className="room-card-detail-value">
               {room.currentPlayers || 0}/{room.maxPlayers}
@@ -107,7 +108,7 @@ const RoomCard = ({ room, onJoinPublic }) => {
                 </>
             ) : (
                 <>
-                  <IoPlay />
+                  <FiPlay />
                   <span>Tham gia</span>
                 </>
             )}

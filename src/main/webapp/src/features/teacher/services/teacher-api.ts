@@ -80,7 +80,7 @@ const teacherApi = {
         const params = new URLSearchParams();
         if (topicId) params.append('topicId', topicId);
         if (questionType) params.append('questionType', questionType);
-        params.append('count', count);
+        params.append('count', String(count));
         const res = await apiInstance.get(`/questions/random?${params}`);
         return res.data;
     },
@@ -218,6 +218,16 @@ const teacherApi = {
             exams: examsRes.data.data,
             questions: questionsRes.data.data
         };
+    },
+
+    getMostCorrectQuestions: async () => {
+        const res = await apiInstance.get('/questions/statistics/most-correct');
+        return res.data;
+    },
+
+    getMostIncorrectQuestions: async () => {
+        const res = await apiInstance.get('/questions/statistics/most-incorrect');
+        return res.data;
     }
 };
 

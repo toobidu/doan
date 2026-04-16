@@ -1,4 +1,19 @@
 import {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {
+    FaAppleAlt,
+    FaBookmark,
+    FaBrain,
+    FaBullseye,
+    FaCalendarAlt,
+    FaClock,
+    FaLanguage,
+    FaLightbulb,
+    FaSearch,
+    FaShare,
+    FaSmile,
+    FaUser
+} from 'react-icons/fa';
 
 
 import '../../styles/pages/footer/blog-page.css';

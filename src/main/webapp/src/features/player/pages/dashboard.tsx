@@ -3,6 +3,10 @@ import { useEffect } from 'react';
 import authStore from '../../../stores/auth-store';
 import profileApi from '../../../services/profile-api';
 import { useStats } from '../../../hooks/use-stats';
+import Decoration from '../../../shared/components/Decoration';
+import HeroSection from '../../../pages/dashboard/hero-section';
+import QuickActionsSection from '../../../pages/dashboard/quick-actions-section';
+import StatsSection from '../../../pages/dashboard/stats-section';
 
 function Dashboard() {
     const { user, isAuthenticated } = authStore();
@@ -33,7 +37,7 @@ function Dashboard() {
         <div className="mp-main-layout">
             <Decoration />
             <main className="mp-main-content">
-                <HeroSection userName={userName} stats={stats} />
+                <HeroSection userName={userName} />
                 <StatsSection stats={stats} loading={statsLoading} />
                 <QuickActionsSection />
             </main>

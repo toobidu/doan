@@ -2,6 +2,9 @@ package org.example.quizizz.common.constants;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 @Getter
 public enum PermissionCode {
     USER_MANAGE("user:manage"),
@@ -24,6 +27,15 @@ public enum PermissionCode {
 
     PermissionCode(String code) {
         this.code = code;
+    }
+
+    public static Optional<PermissionCode> fromCode(String code) {
+        if (code == null || code.isBlank()) {
+            return Optional.empty();
+        }
+        return Arrays.stream(values())
+                .filter(permissionCode -> permissionCode.code.equals(code))
+                .findFirst();
     }
 
 }

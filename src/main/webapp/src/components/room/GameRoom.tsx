@@ -37,29 +37,17 @@ const GameRoom = () => {
     const [showGameStart, setShowGameStart] = useState(false);
     const [showCompletion, setShowCompletion] = useState(false);
 
-    const timerRef = useRef(null);
+    const hasAnsweredRef = useRef(false);
     const questionStartTimeRef = useRef(null);
     const handleGameMessageRef = useRef(null);
     const handlePersonalMessageRef = useRef(null);
 
+    useEffect(() => {
+        hasAnsweredRef.current = hasAnswered;
+    }, [hasAnswered]);
+
     // Khởi tạo với dữ liệu sự kiện game-started từ WaitingRoom
     useEffect(() => {
-        const startInitialQuestionTimer = () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
-
-            timerRef.current = setInterval(() => {
-                setTimeRemaining(prev => {
-                    if (prev <= 1) {
-                        clearInterval(timerRef.current);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        };
-
         const setupGameSubscriptions = () => {
             // Sửa: Xóa các listener tồn tại trước khi thêm mới để tránh trùng lặp
             socketService.off('game-started');
@@ -68,6 +56,8 @@ const GameRoom = () => {
             socketService.off('player-answered');
             socketService.off('game-ended');
             socketService.off('game-finished');
+            socketService.off('countdown-tick');
+            socketService.off('time-up');
 
             // Lắng nghe sự kiện game-started (chứa câu hỏi đầu tiên)
             socketService.on('game-started', (data) => {
@@ -109,6 +99,32 @@ const GameRoom = () => {
             socketService.on('game-finished', (data) => {
                 handleGameMessageRef.current?.({ type: 'GAME_ENDED', data });
             });
+
+            socketService.on('countdown-tick', (data) => {
+                if (data?.roomCode && roomCode && data.roomCode !== roomCode) {
+                    return;
+                }
+                if (data?.roomId && currentRoom?.id && Number(data.roomId) !== Number(currentRoom.id)) {
+                    return;
+                }
+                setTimeRemaining(Math.max(0, Number(data?.remainingTime) || 0));
+            });
+
+            socketService.on('time-up', (data) => {
+                if (data?.roomCode && roomCode && data.roomCode !== roomCode) {
+                    return;
+                }
+                if (data?.roomId && currentRoom?.id && Number(data.roomId) !== Number(currentRoom.id)) {
+                    return;
+                }
+
+                setTimeRemaining(0);
+                if (!hasAnsweredRef.current) {
+                    hasAnsweredRef.current = true;
+                    setHasAnswered(true);
+                    setNotification({ type: 'info', message: 'Hết thời gian trả lời câu hỏi này.' });
+                }
+            });
         };
 
         const initializeWebSocket = async () => {
@@ -143,10 +159,10 @@ const GameRoom = () => {
                     if (response && response.currentQuestion) {
                         setCurrentQuestion(response.currentQuestion);
                         setSelectedAnswer(null);
+                        hasAnsweredRef.current = false;
                         setHasAnswered(false);
-                        setTimeRemaining(response.currentQuestion.timeLimit || 30);
+                        setTimeRemaining(response.remainingTime ?? response.currentQuestion.timeLimit ?? 30);
                         questionStartTimeRef.current = Date.now();
-                        startInitialQuestionTimer();
                     }
                     if (response && response.players) {
                         setGameState(response);
@@ -158,9 +174,6 @@ const GameRoom = () => {
         }
 
         return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
             // KHÔNG ngắt kết nối khỏi phòng - để người dùng ở lại phòng
         };
     }, [currentRoom?.id, currentUser, navigate, roomCode]);
@@ -184,10 +197,10 @@ const GameRoom = () => {
 
                     setCurrentQuestion(message.data.question);
                     setSelectedAnswer(null);
+                    hasAnsweredRef.current = false;
                     setHasAnswered(false);
                     setTimeRemaining(message.data.question.timeLimit || 30);
                     questionStartTimeRef.current = Date.now();
-                    startQuestionTimer(message.data.question.timeLimit || 30);
                     setShowGameStart(true); // Hiển thị popup bắt đầu game
                 }
                 break;
@@ -199,10 +212,10 @@ const GameRoom = () => {
 
                 setCurrentQuestion(nextQuestionData);
                 setSelectedAnswer(null);
+                hasAnsweredRef.current = false;
                 setHasAnswered(false);
                 setTimeRemaining(nextQuestionData.timeLimit || 30);
                 questionStartTimeRef.current = Date.now();
-                startQuestionTimer(nextQuestionData.timeLimit || 30);
                 setNotification({ type: 'info', message: `Câu hỏi ${nextQuestionData.questionNumber}/${nextQuestionData.totalQuestions}` });
                 break;
             }
@@ -210,9 +223,6 @@ const GameRoom = () => {
             case 'GAME_ENDED':
                 setGameResults(message.data);
                 setCurrentQuestion(null);
-                if (timerRef.current) {
-                    clearInterval(timerRef.current);
-                }
                 setShowCompletion(true); // Hiển thị popup hoàn thành
                 break;
 
@@ -259,10 +269,10 @@ const GameRoom = () => {
                     setAnswerResult(null); // Đóng popup
                     setCurrentQuestion(nextQ);
                     setSelectedAnswer(null);
+                    hasAnsweredRef.current = false;
                     setHasAnswered(false);
                     setTimeRemaining(nextQ.timeLimit || 30);
                     questionStartTimeRef.current = Date.now();
-                    startQuestionTimer(nextQ.timeLimit || 30);
                 }, 2500);
 
             } else if (message.data.completed) {
@@ -270,11 +280,8 @@ const GameRoom = () => {
                 setTimeout(() => {
                     setAnswerResult(null);
                     setCurrentQuestion(null);
+                    hasAnsweredRef.current = false;
                     setHasAnswered(false);
-
-                    if (timerRef.current) {
-                        clearInterval(timerRef.current);
-                    }
 
                     setShowCompletion(true); // Hiển thị popup hoàn thành
                 }, 2500);
@@ -312,35 +319,21 @@ const GameRoom = () => {
             timeTaken: timeTaken
         });
 
+        hasAnsweredRef.current = true;
         setHasAnswered(true);
-
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-        }
-    };
-
-    const startQuestionTimer = (_seconds) => {
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-        }
-
-        timerRef.current = setInterval(() => {
-            setTimeRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(timerRef.current);
-                    if (!hasAnswered) {
-                        // Tự động gửi câu trả lời trống khi hết thời gian
-                        submitAnswer();
-                    }
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
     };
 
     const startGame = () => {
-        socketService.emit('startGame', { roomCode });
+        if (!currentRoom?.id) {
+            setNotification({ type: 'error', message: 'Không tìm thấy phòng để bắt đầu game.' });
+            return;
+        }
+
+        socketService.startGame(currentRoom.id, (response) => {
+            if (response?.success === false) {
+                setNotification({ type: 'error', message: response.message || 'Không thể bắt đầu game.' });
+            }
+        });
     };
 
     const getPlayerRankColor = (rank) => {

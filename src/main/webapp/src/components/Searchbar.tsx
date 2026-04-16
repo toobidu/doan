@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import profileApi from '../config/api/profile.api';
+import { FaExclamationTriangle } from 'react-icons/fa';
+import { FiSearch } from 'react-icons/fi';
+import profileApi from '../services/profile-api';
 import authStore from '../stores/auth-store';
-import '../style/pages/Profile.css';
+import '../styles/pages/profile.css';
 
 function Searchbar({ className = '', placeholder = 'Tìm kiếm người chơi...', onSelectUser }) {
   const navigate = useNavigate();

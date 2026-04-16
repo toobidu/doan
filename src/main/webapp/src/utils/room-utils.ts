@@ -65,6 +65,36 @@ export const mapRoomsFromBackend = (backendRooms) => {
     return mapped;
 };
 
+// Adapter pattern: chuẩn hóa payload room đến từ Socket.IO realtime events.
+export const adaptRealtimeRoomPayload = (room) => {
+    if (!room) return null;
+
+    const roomCode = room.roomCode || room.RoomCode || room.code || room.Code;
+    const roomName = room.roomName || room.RoomName || room.name;
+    const topicName = room.topicName || room.TopicName;
+    const maxPlayers = room.maxPlayers ?? room.MaxPlayers;
+    const currentPlayers = room.currentPlayers ?? room.CurrentPlayers;
+    const status = room.status || (typeof room.Status === 'string' ? room.Status.toLowerCase() : room.Status);
+
+    return {
+        ...room,
+        id: room.id,
+        roomCode,
+        code: room.code || roomCode,
+        Code: room.Code || roomCode,
+        roomName,
+        RoomName: room.RoomName || roomName,
+        topicName,
+        TopicName: room.TopicName || topicName,
+        maxPlayers,
+        MaxPlayers: room.MaxPlayers ?? maxPlayers,
+        currentPlayers,
+        CurrentPlayers: room.CurrentPlayers ?? currentPlayers,
+        status,
+        Status: room.Status || room.status
+    };
+};
+
 export const mapCreateRoomRequest = (frontendData) => {
     return {
         roomName: frontendData.roomName,

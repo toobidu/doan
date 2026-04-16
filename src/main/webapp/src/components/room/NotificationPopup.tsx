@@ -1,4 +1,5 @@
 import React from 'react';
+import { MdCheckCircle, MdClose, MdError, MdInfo, MdWarning } from 'react-icons/md';
 import '../../styles/components/room/notification-popup.css';
 
 /**

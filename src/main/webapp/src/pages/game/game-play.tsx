@@ -1,4 +1,13 @@
 import { useEffect, useState } from 'react';
+import {
+    FiAward,
+    FiBarChart2,
+    FiCheckCircle,
+    FiChevronRight,
+    FiClock,
+    FiUsers,
+    FiXCircle
+} from 'react-icons/fi';
 import { useParams, useNavigate } from 'react-router-dom';
 import useGameStore from '../../stores/use-game-store';
 import authStore from '../../stores/auth-store';

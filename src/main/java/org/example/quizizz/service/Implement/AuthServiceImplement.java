@@ -325,12 +325,7 @@ public class AuthServiceImplement implements IAuthService {
 
             // Chuyển từ code sang enum PermissionCode
             Set<PermissionCode> permissionCodes = permissionNames.stream()
-                    .map(code -> {
-                        for (PermissionCode p : PermissionCode.values()) {
-                            if (p.getCode().equals(code)) return p;
-                        }
-                        return null;
-                    })
+                    .map(code -> PermissionCode.fromCode(code).orElse(null))
                     .filter(p -> p != null)
                     .collect(Collectors.toSet());
 
@@ -338,7 +333,7 @@ public class AuthServiceImplement implements IAuthService {
             redisService.saveUserPermissions(userId, permissionCodes);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to refresh user permissions cache for userId={}", userId, e);
         }
     }
 

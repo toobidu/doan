@@ -1,4 +1,16 @@
 import {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {
+    FaChevronDown,
+    FaChevronUp,
+    FaCreditCard,
+    FaGamepad,
+    FaHeadset,
+    FaSearch,
+    FaShieldAlt,
+    FaTools,
+    FaUser
+} from 'react-icons/fa';
 import '../../styles/pages/footer/faqpage.css';
 
 

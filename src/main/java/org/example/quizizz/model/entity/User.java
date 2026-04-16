@@ -1,18 +1,25 @@
 package org.example.quizizz.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_users_type_account", columnList = "type_account"),
+        @Index(name = "idx_users_online", columnList = "online")
+    }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -52,9 +59,6 @@ public class User extends BaseEntity {
     @Column(name = "last_online_time")
     private LocalDateTime lastOnlineTime;
 
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
-
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
@@ -63,4 +67,24 @@ public class User extends BaseEntity {
 
     @Column(name = "verification_token_expiry")
     private LocalDateTime verificationTokenExpiry;
+
+    @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Exam> teachingExams = new ArrayList<>();
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Room> ownedRooms = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<UserRole> userRoles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<RoomPlayers> roomMemberships = new ArrayList<>();
 }

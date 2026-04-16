@@ -1,21 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiChevronLeft,
+    FiChevronRight,
+    FiEdit2,
+    FiPlus,
+    FiSearch,
+    FiTrash2
+} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/management.css';
 
 const TopicManagement = () => {
-    const [topics, setTopics] = useState([]);
+    const [topics, setTopics] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [editingTopic, setEditingTopic] = useState(null);
+    const [editingTopic, setEditingTopic] = useState<any | null>(null);
     const [formData, setFormData] = useState({ name: '', description: '' });
     
     // Pagination states
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-    const [sortOrder, setSortOrder] = useState('asc');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
     const loadTopics = useCallback(async () => {
         try {
@@ -42,7 +50,7 @@ const TopicManagement = () => {
         loadTopics();
     }, [loadTopics]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (editingTopic) {
@@ -73,19 +81,19 @@ const TopicManagement = () => {
         setCurrentPage(0);
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
     };
 
-    const handleEdit = (topic) => {
+    const handleEdit = (topic: any) => {
         setEditingTopic(topic);
         setFormData({ name: topic.name, description: topic.description });
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         if (!window.confirm('Bạn có chắc muốn xóa chủ đề này?')) return;
         try {
             await teacherApi.deleteTopic(id);
@@ -100,7 +108,7 @@ const TopicManagement = () => {
         return sortOrder === 'asc' ? '↑' : '↓';
     };
 
-    const getRowNumber = (index) => {
+    const getRowNumber = (index: number) => {
         return currentPage * 10 + index + 1;
     };
 
@@ -146,14 +154,14 @@ const TopicManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
                                     <div className="spinner-small"></div>
                                     Đang tải...
                                 </td>
                             </tr>
                         ) : topics.length === 0 ? (
                             <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm ? 'Không tìm thấy chủ đề phù hợp' : 'Chưa có chủ đề nào'}
                                 </td>
                             </tr>

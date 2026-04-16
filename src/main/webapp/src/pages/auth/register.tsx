@@ -1,14 +1,29 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaHome, FaLock, FaPhoneAlt, FaUser, FaCalendarAlt } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaBrain, FaCalendarAlt, FaEnvelope, FaExclamationCircle, FaHome, FaLock, FaPhoneAlt, FaUser } from 'react-icons/fa';
 import authApi from '../../services/auth-api';
 import authStore from '../../stores/auth-store';
 import { usePopup } from '@shared/hooks/use-popup';
+import PopupNotification from '@shared/components/PopupNotification';
 import '../../styles/pages/auth/register.css';
+import Decoration from '../../shared/components/Decoration';
+
+type RegisterFormData = {
+  username: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  password: string;
+  confirmPassword: string;
+  dob: string;
+};
+
+type RegisterErrors = Record<string, string>;
 
 function Register() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
     fullName: '',
     email: '',
@@ -18,7 +33,7 @@ function Register() {
     confirmPassword: '',
     dob: '',
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<RegisterErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { popup, showSuccess, showError, hidePopup } = usePopup();
   const firstErrorInputRef = useRef(null);
@@ -77,7 +92,7 @@ function Register() {
   }, [formData.password]);
 
   const validateForm = useCallback(() => {
-    const newErrors = {};
+    const newErrors: RegisterErrors = {};
     Object.keys(formData).forEach((key) => {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
@@ -117,7 +132,7 @@ function Register() {
       } catch (error) {
         const errorMessage = error.response?.data?.message || error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
         if (error.response?.status === 400) {
-          const newErrors = {};
+          const newErrors: RegisterErrors = {};
           if (error.response?.data?.field === 'email') {
             newErrors.email = 'Email đã tồn tại';
             firstErrorInputRef.current = document.getElementById('email');

@@ -2,6 +2,7 @@ package org.example.quizizz.controller.api;
 
 import org.example.quizizz.common.config.ApiResponse;
 import org.example.quizizz.common.constants.MessageCode;
+import org.example.quizizz.common.exception.ApiException;
 import org.example.quizizz.model.dto.room.*;
 import org.example.quizizz.security.JwtUtil;
 import org.example.quizizz.service.Interface.IRoomService;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -209,8 +211,20 @@ public class RoomController {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            return jwtUtil.getUserIdFromToken(token);
+            try {
+                return jwtUtil.getUserIdFromToken(token);
+            } catch (Exception e) {
+                throw new ApiException(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        MessageCode.UNAUTHORIZED,
+                        "Invalid JWT token"
+                );
+            }
         }
-        throw new RuntimeException("No valid JWT token found");
+        throw new ApiException(
+                HttpStatus.UNAUTHORIZED.value(),
+                MessageCode.UNAUTHORIZED,
+                "No valid JWT token found"
+        );
     }
 }

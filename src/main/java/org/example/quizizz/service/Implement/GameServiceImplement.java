@@ -1,8 +1,8 @@
 package org.example.quizizz.service.Implement;
 
-import com.corundumstudio.socketio.SocketIOServer;
 import org.example.quizizz.common.constants.GameStatus;
 import org.example.quizizz.common.constants.RoomStatus;
+import org.example.quizizz.controller.socketio.broadcast.GameSocketFacade;
 import org.example.quizizz.model.dto.game.*;
 import org.example.quizizz.model.dto.game.AnswerOption;
 import org.example.quizizz.model.dto.game.PlayerRanking;
@@ -11,13 +11,11 @@ import org.example.quizizz.model.entity.*;
 import org.example.quizizz.repository.*;
 import org.example.quizizz.service.Interface.IGameService;
 import org.example.quizizz.service.Interface.IRedisService;
+import org.example.quizizz.service.helper.GameAsyncPostProcessor;
 import org.example.quizizz.service.helper.GameScoreCalculator;
-import org.example.quizizz.service.helper.GameTimerService;
 import org.example.quizizz.service.helper.GameTimerEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,16 +41,9 @@ public class GameServiceImplement implements IGameService {
     private final RoomRepository roomRepository;
     private final RoomPlayerRepository roomPlayerRepository;
     private final GameScoreCalculator scoreCalculator;
-    private final RankServiceImplement rankService;
-    private final ApplicationContext applicationContext;
-    private final PlayerProfileServiceImplement playerProfileService;
+    private final GameAsyncPostProcessor gameAsyncPostProcessor;
     private final UserRepository userRepository;
-    private SocketIOServer socketIOServer;
-
-    @Autowired
-    public void setSocketIOServer(SocketIOServer socketIOServer) {
-        this.socketIOServer = socketIOServer;
-    }
+    private final GameSocketFacade gameSocketFacade;
 
     @Override
     @Transactional
@@ -308,8 +300,14 @@ public class GameServiceImplement implements IGameService {
         Map<Long, Integer> userTotalAnswers = new HashMap<>();
 
         List<RoomPlayers> players = roomPlayerRepository.findByRoomId(roomId);
+        Set<Long> userIds = players.stream().map(RoomPlayers::getUserId).collect(Collectors.toSet());
+        Map<Long, User> userById = userIds.isEmpty()
+                ? Collections.emptyMap()
+                : userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
         for (RoomPlayers player : players) {
-            User user = userRepository.findById(player.getUserId()).orElse(null);
+            User user = userById.get(player.getUserId());
             if (user != null) {
                 userNames.put(player.getUserId(), user.getUsername());
                 userAvatars.put(player.getUserId(), user.getAvatarURL());
@@ -391,23 +389,22 @@ public class GameServiceImplement implements IGameService {
                 history.setUserId(ranking.getUserId());
                 history.setScore(ranking.getTotalScore().intValue());
 
-                long correctCount = allAnswers.stream()
-                        .filter(a -> a.getUserId().equals(ranking.getUserId()) && a.getIsCorrect())
-                        .count();
-                history.setCorrectAnswers((int) correctCount);
+                int correctCount = userCorrectAnswers.getOrDefault(ranking.getUserId(), 0);
+                history.setCorrectAnswers(correctCount);
                 history.setTotalQuestions(totalQuestions);
                 gameHistoryRepository.save(history);
+
+                gameAsyncPostProcessor.updateRankAndProfileAfterGame(
+                        ranking.getUserId(),
+                        ranking.getTotalScore().intValue(),
+                        ranking.getTotalTime(),
+                        roomId
+                );
                 
                 log.info("Saved game history for user {} in session {}", ranking.getUserId(), gameSessionId);
             } else {
                 log.info("Game history already exists for user {} in session {}", ranking.getUserId(), gameSessionId);
             }
-
-            rankService.updateRankAfterGame(
-                    ranking.getUserId(),
-                    ranking.getTotalScore().intValue(),
-                    ranking.getTotalTime()
-            );
         }
 
         // Cập nhật Redis
@@ -417,16 +414,6 @@ public class GameServiceImplement implements IGameService {
         Room room = roomRepository.findById(roomId).orElseThrow();
         room.setStatus(RoomStatus.FINISHED.name());
         roomRepository.save(room);
-
-        // FIXED: Cập nhật player profile cho từng người chơi
-        for (PlayerRanking ranking : rankings) {
-            try {
-                playerProfileService.updateProfileAfterGame(ranking.getUserId(), roomId);
-                log.info("Updated player profile for user {}", ranking.getUserId());
-            } catch (Exception e) {
-                log.error("Error updating player profile for user {}: {}", ranking.getUserId(), e.getMessage());
-            }
-        }
 
         GameOverResponse response = new GameOverResponse();
         response.setRanking(rankings);
@@ -452,11 +439,7 @@ public class GameServiceImplement implements IGameService {
                 GameOverResponse gameResult = endGame(roomId);
 
                 Room room = roomRepository.findById(roomId).orElseThrow();
-                socketIOServer.getRoomOperations("room-" + room.getRoomCode())
-                        .sendEvent("game-finished", Map.of(
-                                "result", gameResult,
-                                "timestamp", System.currentTimeMillis()
-                        ));
+                gameSocketFacade.notifyGameFinished(room.getRoomCode(), gameResult);
             }
         } catch (Exception e) {
             log.error("Error handling timer event: {}", e.getMessage(), e);
@@ -571,7 +554,7 @@ public class GameServiceImplement implements IGameService {
             int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
 
             // Lấy danh sách players trong room
-            List<RoomPlayers> roomPlayers = roomPlayerRepository.findByRoomId(roomId);
+            List<RoomPlayers> roomPlayers = roomPlayerRepository.findByRoomIdOrderByJoinOrder(roomId);
             int totalPlayers = roomPlayers.size();
 
             if (totalPlayers == 0) {
@@ -579,14 +562,16 @@ public class GameServiceImplement implements IGameService {
                 return false;
             }
 
-            // Kiểm tra từng player đã hoàn thành chưa
-            int completedPlayers = 0;
-            for (RoomPlayers player : roomPlayers) {
-                List<UserAnswer> playerAnswers = userAnswerRepository.findByRoomIdAndUserId(roomId, player.getUserId());
-                if (playerAnswers.size() >= totalQuestions) {
-                    completedPlayers++;
-                }
-            }
+            Map<Long, Long> answerCountByUser = userAnswerRepository.countAnswersByUserInRoom(roomId).stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],
+                            row -> (Long) row[1]
+                    ));
+
+            int completedPlayers = (int) roomPlayers.stream()
+                    .map(RoomPlayers::getUserId)
+                    .filter(userId -> answerCountByUser.getOrDefault(userId, 0L) >= totalQuestions)
+                    .count();
 
             return completedPlayers >= totalPlayers;
         } catch (Exception e) {

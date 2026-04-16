@@ -6,6 +6,9 @@ import Cookies from 'js-cookie';
  *
  */
 class SocketManager {
+    private isInitialized: boolean;
+    private connectionPromise: Promise<void> | null;
+
     constructor() {
         this.isInitialized = false;
         this.connectionPromise = null;
@@ -34,7 +37,7 @@ class SocketManager {
      * Phương thức riêng tư để xử lý kết nối
      * @private
      */
-    async _connect() {
+    async _connect(): Promise<void> {
         try {
             const token = this._getToken();
             if (!token) {
@@ -57,7 +60,7 @@ class SocketManager {
      * @private
      * @returns {string|null}
      */
-    _getToken() {
+    _getToken(): string | null {
         // Thử cookies trước
         let token = Cookies.get('accessToken');
 
@@ -95,7 +98,7 @@ class SocketManager {
      * Lấy ID người dùng hiện tại từ auth store
      * @returns {number|null}
      */
-    getCurrentUserId() {
+    getCurrentUserId(): number | null {
         try {
             // Import động để tránh phụ thuộc vòng tròn
             const authStore = require('../stores/auth-store').default;
@@ -111,7 +114,7 @@ class SocketManager {
      * @param {Function} callback - Hàm cần thực thi
      * @returns {Promise<void>}
      */
-    async onceConnected(callback) {
+    async onceConnected(callback: () => void): Promise<void> {
         await this.initialize();
         if (this.isConnected()) {
             callback();
@@ -122,7 +125,7 @@ class SocketManager {
      * Kết nối lại với token mới
      * @returns {Promise<void>}
      */
-    async reconnect() {
+    async reconnect(): Promise<void> {
         this.disconnect();
         return this.initialize();
     }

@@ -1,14 +1,31 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaBrain, FaExclamationCircle, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 import authApi from '../../services/auth-api';
 import '../../styles/pages/auth/login.css';
 import { usePopup } from '@shared/hooks/use-popup';
+import PopupNotification from '@shared/components/PopupNotification';
 import authStore from '../../stores/auth-store';
-import { jwtDecode } from 'jwt-decode';
+import { JwtPayload, jwtDecode } from 'jwt-decode';
+import Decoration from '../../shared/components/Decoration';
+
+type LoginFormData = {
+    username: string;
+    password: string;
+};
+
+type LoginErrors = {
+    username?: string;
+    password?: string;
+};
+
+type DecodedToken = JwtPayload & {
+    typeAccount?: 'ADMIN' | 'TEACHER' | 'PLAYER';
+};
 
 function Login() {
-    const [formData, setFormData] = useState({ username: '', password: '' });
-    const [errors, setErrors] = useState({});
+    const [formData, setFormData] = useState<LoginFormData>({ username: '', password: '' });
+    const [errors, setErrors] = useState<LoginErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { popup, showSuccess, showError, showWarning, hidePopup } = usePopup();
     const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +45,7 @@ function Login() {
     }, [isAuthenticated, user, navigate]);
 
     const validateForm = useCallback(() => {
-        const newErrors = {};
+        const newErrors: LoginErrors = {};
         const username = formData.username.trim();
         const password = formData.password;
 
@@ -74,7 +91,7 @@ function Login() {
                 const accessToken = userData?.accessToken;
                 
                 // Decode JWT to get typeAccount
-                const decoded = jwtDecode(accessToken);
+                const decoded = jwtDecode<DecodedToken>(accessToken);
                 const userRole = decoded?.typeAccount;
                 
                 showSuccess('Đăng nhập thành công!');

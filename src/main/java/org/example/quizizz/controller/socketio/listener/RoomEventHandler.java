@@ -1,8 +1,10 @@
 package org.example.quizizz.controller.socketio.listener;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import org.example.quizizz.controller.socketio.broadcast.RoomSocketFacade;
 import org.example.quizizz.controller.socketio.session.SessionManager;
 import org.example.quizizz.model.dto.room.CreateRoomRequest;
+import org.example.quizizz.model.dto.room.JoinRoomRequest;
 import org.example.quizizz.model.dto.room.RoomPlayerResponse;
 import org.example.quizizz.model.dto.room.RoomResponse;
 import org.example.quizizz.model.dto.socket.CreateRoomSocketRequest;
@@ -27,6 +29,7 @@ public class RoomEventHandler {
     private final IRoomService roomService;
     private final SessionManager sessionManager;
     private final RoomRepository roomRepository;
+    private final RoomSocketFacade roomSocketFacade;
     
     public void registerEvents(SocketIOServer server) {
         
@@ -86,9 +89,8 @@ public class RoomEventHandler {
                     return;
                 }
 
-                // Join room thông qua service
-                RoomResponse room = roomService.getRoomByCode(data.getRoomCode());
-                roomService.joinRoomById(room.getId(), userId);
+                // Join room thông qua service theo roomCode để hỗ trợ cả phòng public/private.
+                RoomResponse room = roomService.joinRoom(new JoinRoomRequest(data.getRoomCode()), userId);
                 
                 // Join socket room
                 client.joinRoom("room-" + data.getRoomCode());
@@ -101,20 +103,15 @@ public class RoomEventHandler {
                     .findFirst().orElse(null);
 
                 // Gửi thông báo đến tất cả clients trong phòng
-                server.getRoomOperations("room-" + data.getRoomCode())
-                    .sendEvent("player-joined", Map.of(
-                        "roomId", room.getId(),
-                        "player", newPlayer != null ? newPlayer : Map.of("userId", userId),
-                        "totalPlayers", players.size(),
-                        "timestamp", System.currentTimeMillis()
-                    ));
+                roomSocketFacade.notifyPlayerJoined(
+                    data.getRoomCode(),
+                    room.getId(),
+                    newPlayer != null ? newPlayer : Map.of("userId", userId),
+                    players.size()
+                );
                 
                 // Cập nhật danh sách players cho tất cả
-                server.getRoomOperations("room-" + data.getRoomCode())
-                    .sendEvent("room-players", Map.of(
-                        "roomId", room.getId(),
-                        "players", players
-                    ));
+                roomSocketFacade.notifyRoomPlayers(data.getRoomCode(), room.getId(), players);
                 
                 client.sendEvent("join-room-success", Map.of(
                     "success", true,
@@ -153,7 +150,6 @@ public class RoomEventHandler {
                     .findFirst().orElse(null);
                 
                 String roomCode = room.getRoomCode();
-                boolean wasHost = room.getOwnerId().equals(userId);
                 
                 // Leave socket room
                 client.leaveRoom("room-" + roomCode);
@@ -163,7 +159,7 @@ public class RoomEventHandler {
                 roomService.leaveRoom(data.getRoomId(), userId);
                 
                 // Gửi thông báo cho client rời phòng
-                client.sendEvent("room-left-success", Map.of(
+                client.sendEvent("leave-room-success", Map.of(
                     "roomId", data.getRoomId(),
                     "timestamp", System.currentTimeMillis()
                 ));
@@ -173,34 +169,10 @@ public class RoomEventHandler {
                     List<RoomPlayerResponse> playersAfter = roomService.getRoomPlayers(data.getRoomId());
                     
                     // Thông báo player đã rời
-                    server.getRoomOperations("room-" + roomCode)
-                        .sendEvent("player-left", Map.of(
-                            "roomId", data.getRoomId(),
-                            "player", leavingPlayer,
-                            "totalPlayers", playersAfter.size(),
-                            "timestamp", System.currentTimeMillis()
-                        ));
+                    roomSocketFacade.notifyPlayerLeft(roomCode, data.getRoomId(), leavingPlayer, playersAfter.size());
                     
                     // Cập nhật danh sách players
-                    server.getRoomOperations("room-" + roomCode)
-                        .sendEvent("room-players-updated", Map.of(
-                            "roomId", data.getRoomId(),
-                            "players", playersAfter
-                        ));
-                    
-                    // Nếu host rời, thông báo host mới
-                    if (wasHost && !playersAfter.isEmpty()) {
-                        Room updatedRoom = roomRepository.findById(data.getRoomId()).orElse(null);
-                        if (updatedRoom != null) {
-                            server.getRoomOperations("room-" + roomCode)
-                                .sendEvent("host-changed", Map.of(
-                                    "roomId", data.getRoomId(),
-                                    "newHostId", updatedRoom.getOwnerId(),
-                                    "previousHostId", userId,
-                                    "timestamp", System.currentTimeMillis()
-                                ));
-                        }
-                    }
+                    roomSocketFacade.notifyRoomPlayers(roomCode, data.getRoomId(), playersAfter);
                 } catch (Exception ignored) {
                     // Phòng có thể đã bị xóa nếu trống
                 }
@@ -209,6 +181,9 @@ public class RoomEventHandler {
                 
             } catch (Exception e) {
                 log.error("Error leaving room: {}", e.getMessage());
+                client.sendEvent("leave-room-error", Map.of(
+                    "message", e.getMessage() != null ? e.getMessage() : "Failed to leave room"
+                ));
             }
         });
         

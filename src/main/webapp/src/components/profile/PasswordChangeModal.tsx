@@ -1,4 +1,5 @@
 import '../../styles/components/profile/password-change-modal.css';
+import {FiLoader, FiLock, FiSave, FiX} from 'react-icons/fi';
 import { Lock } from 'lucide-react';
 
 const PasswordChangeModal = ({

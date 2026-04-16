@@ -1,3 +1,13 @@
+import {Link} from 'react-router-dom';
+import {
+    FaMapMarkerAlt,
+    FaPhoneAlt,
+    FaEnvelope,
+    FaFacebook,
+    FaInstagram,
+    FaYoutube
+} from 'react-icons/fa';
+import {FaXTwitter} from 'react-icons/fa6';
 import '../styles/components/footer.css';
 import vietnamFlag from '../assets/images/vietnam.png';
 

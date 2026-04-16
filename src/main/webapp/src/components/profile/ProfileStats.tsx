@@ -1,3 +1,5 @@
+import {FaRunning} from 'react-icons/fa';
+import {FiAward, FiClock, FiTarget, FiUsers} from 'react-icons/fi';
 import '../../styles/components/profile/profile-stats.css';
 import '../../styles/components/profile/profile-stats-loading.css';
 import { useStats } from '../../hooks/use-stats';

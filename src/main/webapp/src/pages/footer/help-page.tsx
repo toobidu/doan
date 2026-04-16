@@ -1,3 +1,12 @@
+import {Link} from 'react-router-dom';
+import {
+    FaBook,
+    FaHeadset,
+    FaQuestionCircle,
+    FaSearch,
+    FaTools,
+    FaUserShield
+} from 'react-icons/fa';
 import '../../styles/pages/footer/help-page.css';
 
 function HelpPage() {

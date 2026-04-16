@@ -1,11 +1,11 @@
 package org.example.quizizz.service.Implement;
 
-import com.corundumstudio.socketio.SocketIOServer;
 import org.example.quizizz.common.constants.MessageCode;
 import org.example.quizizz.common.constants.RoomMode;
 import org.example.quizizz.common.constants.RoomStatus;
 import org.example.quizizz.common.exception.ApiException;
 import org.example.quizizz.common.event.RoomEvent;
+import org.example.quizizz.controller.socketio.broadcast.RoomSocketFacade;
 import org.example.quizizz.mapper.RoomMapper;
 import org.example.quizizz.mapper.RoomPlayerMapper;
 import org.example.quizizz.model.dto.room.*;
@@ -24,8 +24,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,7 +42,7 @@ public class RoomServiceImplement implements IRoomService {
     private final UserRepository userRepository;
     private final TopicRepository topicRepository;
     private final ExamRepository examRepository;
-    private final SocketIOServer socketIOServer;
+    private final RoomSocketFacade roomSocketFacade;
     private final RoomMapper roomMapper;
     private final RoomPlayerMapper roomPlayerMapper;
     private final RoomCodeGenerator roomCodeGenerator;
@@ -78,8 +81,6 @@ public class RoomServiceImplement implements IRoomService {
 
         RoomResponse roomResponse = mapToRoomResponse(savedRoom);
 
-        // Broadcast sự kiện roomCreated
-        broadcastRoomCreated(roomResponse);
         eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_CREATED, roomResponse));
 
         return roomResponse;
@@ -129,7 +130,6 @@ public class RoomServiceImplement implements IRoomService {
         updateRoomStatus(room);
 
         RoomResponse roomResponse = mapToRoomResponse(room);
-        broadcastRoomUpdated(roomResponse);
         eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_UPDATED, roomResponse));
 
         log.info("User {} successfully joined room {}", userId, room.getId());
@@ -160,10 +160,8 @@ public class RoomServiceImplement implements IRoomService {
         Room roomAfterLeave = roomRepository.findById(roomId).orElse(null);
         if (roomAfterLeave != null) {
             RoomResponse response = mapToRoomResponse(roomAfterLeave);
-            broadcastRoomUpdated(response);
             eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_UPDATED, response));
         } else {
-            broadcastRoomDeleted(roomId);
             eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_DELETED, roomId));
         }
     }
@@ -180,10 +178,18 @@ public class RoomServiceImplement implements IRoomService {
                 .orElseThrow(() -> new ApiException(MessageCode.ROOM_NOT_FOUND));
 
         List<RoomPlayers> players = roomPlayerRepository.findByRoomIdOrderByJoinOrder(roomId);
+        Set<Long> userIds = players.stream()
+                .map(RoomPlayers::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, User> userById = userIds.isEmpty()
+                ? Collections.emptyMap()
+                : userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
         return players.stream()
                 .map(player -> {
-                    User user = userRepository.findById(player.getUserId())
-                            .orElse(null);
+                    User user = userById.get(player.getUserId());
                     return user != null ? roomPlayerMapper.toResponse(player, user)
                             : roomPlayerMapper.toResponse(player);
                 })
@@ -217,7 +223,7 @@ public class RoomServiceImplement implements IRoomService {
         player.setStatus("KICKED");
         roomPlayerRepository.save(player);
 
-        broadcastRoomUpdated(mapToRoomResponse(room));
+        eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_UPDATED, mapToRoomResponse(room)));
     }
 
     @Override
@@ -246,6 +252,8 @@ public class RoomServiceImplement implements IRoomService {
         if (players.size() <= 1) {
             handleEmptyRoom(room);
         } else {
+            Long previousHostId = room.getOwnerId();
+
             RoomPlayers nextHost = players.stream()
                     .filter(p -> !p.getUserId().equals(room.getOwnerId()) && "ACTIVE".equals(p.getStatus()))
                     .min((p1, p2) -> p1.getJoinOrder().compareTo(p2.getJoinOrder()))
@@ -256,15 +264,14 @@ public class RoomServiceImplement implements IRoomService {
 
             nextHost.setIsHost(true);
             roomPlayerRepository.save(nextHost);
-            
-            try {
-                socketIOServer.getRoomOperations("room-" + room.getRoomCode())
-                    .sendEvent("host-changed", Map.of(
-                        "roomId", room.getId(),
-                        "newHostId", nextHost.getUserId(),
-                        "reason", "previous_host_left"
-                    ));
-            } catch (Exception ignored) {}
+
+            roomSocketFacade.notifyHostChanged(
+                    room.getRoomCode(),
+                    room.getId(),
+                    nextHost.getUserId(),
+                    previousHostId,
+                    "previous_host_left"
+            );
         }
     }
 
@@ -277,13 +284,11 @@ public class RoomServiceImplement implements IRoomService {
         if (!room.getHasGameHistory()) {
             roomPlayerRepository.deleteByRoomId(room.getId());
             roomRepository.delete(room);
-            broadcastRoomDeleted(room.getId());
             eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_DELETED, room.getId()));
         } else {
             room.setStatus(RoomStatus.ARCHIVED.name());
             roomRepository.save(room);
             roomPlayerRepository.deleteByRoomId(room.getId());
-            broadcastRoomDeleted(room.getId());
             eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_DELETED, room.getId()));
         }
     }
@@ -312,8 +317,6 @@ public class RoomServiceImplement implements IRoomService {
 
         log.info("Room {} deleted by user {} - room players manually deleted", roomId, userId);
 
-        // Broadcast roomDeleted to all clients
-        broadcastRoomDeleted(roomId);
         eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_DELETED, roomId));
     }
 
@@ -361,18 +364,9 @@ public class RoomServiceImplement implements IRoomService {
         RoomResponse response = mapToRoomResponse(updatedRoom);
 
         // Broadcast host-changed và và cập nhật danh sách người chơi
-        try {
-            socketIOServer.getRoomOperations("room-" + roomId)
-                    .sendEvent("host-changed", Map.of(
-                            "roomId", roomId,
-                            "newHostId", newHostId));
-            List<RoomPlayerResponse> players = getRoomPlayers(roomId);
-            socketIOServer.getRoomOperations("room-" + roomId)
-                    .sendEvent("room-players", Map.of(
-                            "roomId", roomId,
-                            "players", players));
-        } catch (Exception ignored) {
-        }
+        roomSocketFacade.notifyHostChanged(room.getRoomCode(), roomId, newHostId, currentHostId, "manual_transfer");
+        List<RoomPlayerResponse> players = getRoomPlayers(roomId);
+        roomSocketFacade.notifyRoomPlayers(room.getRoomCode(), roomId, players);
 
         return response;
     }
@@ -473,7 +467,7 @@ public class RoomServiceImplement implements IRoomService {
         updateRoomStatus(room);
 
         RoomResponse roomResponse = mapToRoomResponse(room);
-        broadcastRoomUpdated(roomResponse);
+        eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_UPDATED, roomResponse));
 
         return roomResponse;
     }
@@ -501,9 +495,7 @@ public class RoomServiceImplement implements IRoomService {
 
     private PagedRoomResponse mapToPagedResponse(Page<Room> roomPage) {
         PagedRoomResponse response = new PagedRoomResponse();
-        response.setRooms(roomPage.getContent().stream()
-                .map(this::mapToRoomResponse)
-                .collect(Collectors.toList()));
+        response.setRooms(mapToRoomResponses(roomPage.getContent()));
         response.setCurrentPage(roomPage.getNumber());
         response.setTotalPages(roomPage.getTotalPages());
         response.setTotalElements(roomPage.getTotalElements());
@@ -513,35 +505,72 @@ public class RoomServiceImplement implements IRoomService {
         return response;
     }
 
+    private List<RoomResponse> mapToRoomResponses(List<Room> rooms) {
+        if (rooms == null || rooms.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> roomIds = rooms.stream().map(Room::getId).collect(Collectors.toList());
+
+        Map<Long, Integer> playerCountByRoomId = roomPlayerRepository.countPlayersInRooms(roomIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> ((Long) row[1]).intValue()
+                ));
+
+        Set<Long> topicIds = rooms.stream()
+                .map(Room::getTopicId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, String> topicNameById = topicIds.isEmpty()
+                ? Collections.emptyMap()
+                : topicRepository.findAllById(topicIds).stream()
+                .collect(Collectors.toMap(topic -> topic.getId(), topic -> topic.getName()));
+
+        Set<Long> examIds = rooms.stream()
+                .map(Room::getExamId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, String> examTitleById = examIds.isEmpty()
+                ? Collections.emptyMap()
+                : examRepository.findAllById(examIds).stream()
+                .collect(Collectors.toMap(exam -> exam.getId(), exam -> exam.getTitle()));
+
+        Set<Long> ownerIds = rooms.stream()
+                .map(Room::getOwnerId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, String> ownerUsernameById = ownerIds.isEmpty()
+                ? Collections.emptyMap()
+                : userRepository.findAllById(ownerIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getUsername));
+
+        return rooms.stream()
+                .map(room -> {
+                    RoomResponse response = roomMapper.toResponse(room);
+                    response.setCurrentPlayers(playerCountByRoomId.getOrDefault(room.getId(), 0));
+
+                    if (room.getTopicId() != null) {
+                        response.setTopicName(topicNameById.get(room.getTopicId()));
+                    }
+                    if (room.getExamId() != null) {
+                        response.setExamTitle(examTitleById.get(room.getExamId()));
+                    }
+                    if (room.getOwnerId() != null) {
+                        response.setOwnerUsername(ownerUsernameById.get(room.getOwnerId()));
+                    }
+
+                    return response;
+                })
+                .collect(Collectors.toList());
+    }
+
     /**
      * Map Room entity to RoomResponse với currentPlayers và topicName
      */
     private RoomResponse mapToRoomResponse(Room room) {
-        RoomResponse response = roomMapper.toResponse(room);
-
-        // Set current players count
-        Integer currentPlayers = roomPlayerRepository.countPlayersInRoom(room.getId());
-        response.setCurrentPlayers(currentPlayers);
-
-        // Load and set topic name
-        if (room.getTopicId() != null) {
-            topicRepository.findById(room.getTopicId())
-                    .ifPresent(topic -> response.setTopicName(topic.getName()));
-        }
-
-        // Load and set exam title
-        if (room.getExamId() != null) {
-            examRepository.findById(room.getExamId())
-                    .ifPresent(exam -> response.setExamTitle(exam.getTitle()));
-        }
-
-        // Load and set owner username
-        if (room.getOwnerId() != null) {
-            userRepository.findById(room.getOwnerId())
-                    .ifPresent(user -> response.setOwnerUsername(user.getUsername()));
-        }
-
-        return response;
+        List<RoomResponse> responses = mapToRoomResponses(List.of(room));
+        return responses.isEmpty() ? roomMapper.toResponse(room) : responses.get(0);
     }
 
     private String generateUniqueRoomCode() {
@@ -550,48 +579,6 @@ public class RoomServiceImplement implements IRoomService {
             roomCode = roomCodeGenerator.generateRoomCode();
         } while (roomRepository.existsByRoomCode(roomCode));
         return roomCode;
-    }
-
-    /**
-     * Broadcast room created event to clients in "room-list"
-     */
-    private void broadcastRoomCreated(RoomResponse room) {
-        try {
-            socketIOServer.getRoomOperations("room-list").sendEvent("roomCreated", Map.of(
-                    "room", room,
-                    "timestamp", System.currentTimeMillis()));
-            log.info("Broadcasted roomCreated event for room {} to room-list", room.getId());
-        } catch (Exception e) {
-            log.error("Failed to broadcast roomCreated: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * Broadcast room deleted event to clients in "room-list"
-     */
-    private void broadcastRoomDeleted(Long roomId) {
-        try {
-            socketIOServer.getRoomOperations("room-list").sendEvent("roomDeleted", Map.of(
-                    "roomId", roomId,
-                    "timestamp", System.currentTimeMillis()));
-            log.info("Broadcasted roomDeleted event for room {}", roomId);
-        } catch (Exception e) {
-            log.error("Failed to broadcast roomDeleted: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * Broadcast room updated event to clients in "room-list"
-     */
-    private void broadcastRoomUpdated(RoomResponse room) {
-        try {
-            socketIOServer.getRoomOperations("room-list").sendEvent("roomUpdated", Map.of(
-                    "room", room,
-                    "timestamp", System.currentTimeMillis()));
-            log.info("Broadcasted roomUpdated event for room {}", room.getId());
-        } catch (Exception e) {
-            log.error("Failed to broadcast roomUpdated: {}", e.getMessage());
-        }
     }
 
     @Override

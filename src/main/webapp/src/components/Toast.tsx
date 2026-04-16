@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { FiAlertCircle, FiCheckCircle, FiInfo, FiXCircle } from 'react-icons/fi';
 import '../styles/components/toast.css';
 
 const Toast = ({ type = 'info', message, onClose, duration = 5000 }) => {

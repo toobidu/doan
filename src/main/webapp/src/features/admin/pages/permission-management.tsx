@@ -1,16 +1,26 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiChevronLeft,
+    FiChevronRight,
+    FiEdit2,
+    FiMoreVertical,
+    FiPlus,
+    FiSearch,
+    FiTrash2
+} from 'react-icons/fi';
+import PopupNotification from '@shared/components/PopupNotification';
 import adminApi from '../services/admin-api';
 import { usePopup } from '@shared/hooks/use-popup';
 import '../../../styles/features/teacher/management.css';
 
 const PermissionManagement = () => {
-    const [permissions, setPermissions] = useState([]);
+    const [permissions, setPermissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [editingPermission, setEditingPermission] = useState(null);
+    const [editingPermission, setEditingPermission] = useState<any | null>(null);
     const [formData, setFormData] = useState({ permissionName: '', description: '' });
-    const [dropdownOpen, setDropdownOpen] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
     
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -50,7 +60,7 @@ const PermissionManagement = () => {
         }
     }, [dropdownOpen]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (editingPermission) {
@@ -65,18 +75,18 @@ const PermissionManagement = () => {
             setEditingPermission(null);
             setCurrentPage(0);
             loadPermissions();
-        } catch (error) {
+        } catch (error: any) {
             showError(error.response?.data?.message || 'Có lỗi xảy ra');
         }
     };
 
-    const handleEdit = (permission) => {
+    const handleEdit = (permission: any) => {
         setEditingPermission(permission);
         setFormData({ permissionName: permission.permissionName, description: permission.description });
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         showConfirm(
             'Bạn có chắc muốn xóa quyền này? Hành động này không thể hoàn tác.',
             async () => {
@@ -94,7 +104,7 @@ const PermissionManagement = () => {
         );
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
@@ -146,11 +156,11 @@ const PermissionManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Đang tải...</td>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Đang tải...</td>
                             </tr>
                         ) : permissions.length === 0 ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm ? 'Không tìm thấy quyền phù hợp' : 'Chưa có quyền nào'}
                                 </td>
                             </tr>

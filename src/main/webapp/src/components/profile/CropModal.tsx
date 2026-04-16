@@ -1,3 +1,5 @@
+import ReactCrop from 'react-image-crop';
+import {FiLoader, FiSave, FiX} from 'react-icons/fi';
 import 'react-image-crop/dist/ReactCrop.css';
 import '../../styles/components/profile/crop-modal.css';
 
@@ -45,7 +47,6 @@ const CropModal = ({
                     <div className="pf-crop-body-content">
                         <div className="pf-crop-container">
                             <ReactCrop
-                                src={selectedImage}
                                 crop={crop}
                                 onChange={(newCrop) => {
                                     setCrop(newCrop);

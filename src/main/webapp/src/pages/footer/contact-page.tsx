@@ -1,4 +1,18 @@
 import {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {
+    FaCheckCircle,
+    FaChevronDown,
+    FaChevronUp,
+    FaClock,
+    FaEnvelope,
+    FaFacebook,
+    FaInstagram,
+    FaLinkedin,
+    FaMapMarkerAlt,
+    FaPhoneAlt,
+    FaTwitter
+} from 'react-icons/fa';
 import '../../styles/pages/footer/contact-page.css';
 
 
@@ -151,7 +165,7 @@ function ContactPage() {
 
                         <div className="form-group">
                             <label htmlFor="message">Nội dung</label>
-                            <textarea id="message" name="message" rows="5"
+                            <textarea id="message" name="message" rows={5}
                                       placeholder="Nhập nội dung tin nhắn của bạn" required></textarea>
                         </div>
 

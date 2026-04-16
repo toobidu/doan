@@ -1,4 +1,5 @@
 import '../styles/pages/error-page.css';
+import { Link } from 'react-router-dom';
 import authStore from '../stores/auth-store';
 
 const ErrorPage = () => {

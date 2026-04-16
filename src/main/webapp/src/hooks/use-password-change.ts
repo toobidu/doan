@@ -12,7 +12,7 @@ export const usePasswordChange = () => {
     const [updateLoading, setUpdateLoading] = useState(false);
 
     const validatePassword = useCallback(() => {
-        const errors = {};
+        const errors: Record<string, string> = {};
         if (!passwordData.currentPassword) errors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại';
         if (!passwordData.newPassword) errors.newPassword = 'Vui lòng nhập mật khẩu mới';
         else if (passwordData.newPassword.length < 6) errors.newPassword = 'Mật khẩu mới phải có ít nhất 6 ký tự';
@@ -62,6 +62,7 @@ export const usePasswordChange = () => {
         setIsChangingPassword,
         passwordData,
         formErrors,
+        setFormErrors,
         updateLoading,
         handlePasswordChange,
         handleChangePassword

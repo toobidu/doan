@@ -1,4 +1,17 @@
 import {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {
+    FaBolt,
+    FaBrain,
+    FaBullseye,
+    FaCalculator,
+    FaChartLine,
+    FaLanguage,
+    FaLightbulb,
+    FaSearch,
+    FaStar,
+    FaUsers
+} from 'react-icons/fa';
 
 import '../../styles/pages/footer/games-page.css';
 

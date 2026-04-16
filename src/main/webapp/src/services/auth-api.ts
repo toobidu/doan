@@ -59,8 +59,7 @@ const register = async (payload) => {
   } catch (error) {
     const errorMessage =
         error.response?.data?.message || error.message || 'Đăng ký thất bại';
-    const field = error.response?.data?.field;
-    throw new Error(errorMessage, { cause: { field } });
+    throw new Error(errorMessage);
   }
 };
 

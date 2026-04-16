@@ -227,7 +227,7 @@ const roomApi = {
      * Get all rooms with pagination (simplified - only WAITING rooms)
      * @param {object} params - Query parameters
      */
-    getPublicRooms: async (params = {}) => {
+    getPublicRooms: async (params: { page?: number; size?: number; search?: string } = {}) => {
         try {
             const { page = 0, size = 6, search = '' } = params;
             const queryParams = new URLSearchParams({

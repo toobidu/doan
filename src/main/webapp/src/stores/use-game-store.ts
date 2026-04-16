@@ -1,10 +1,81 @@
 import { create } from 'zustand';
 import socketService from '../services/socket-service';
 
+type GameAnswer = {
+    content: string;
+};
+
+type GameQuestion = {
+    questionId: number | string;
+    sequence: number;
+    totalQuestions: number;
+    content: string;
+    imageUrl?: string;
+    timeLimit?: number;
+    answers: GameAnswer[];
+};
+
+type GamePlayer = {
+    userId: number | string;
+    username: string;
+    score?: number;
+    totalScore?: number;
+    [key: string]: unknown;
+};
+
+type AnswerResult = {
+    isCorrect: boolean;
+    score?: number;
+    totalScore?: number;
+    userId: number | string;
+    [key: string]: unknown;
+};
+
+type GameStoreState = {
+    isGameActive: boolean;
+    isGameStarting: boolean;
+    isGameFinished: boolean;
+    currentQuestion: GameQuestion | null;
+    currentQuestionIndex: number;
+    totalQuestions: number;
+    timeRemaining: number;
+    timerInterval: ReturnType<typeof setInterval> | null;
+    questionStartTime: number | null;
+    selectedAnswer: number | null;
+    hasAnswered: boolean;
+    answerResult: AnswerResult | null;
+    players: GamePlayer[];
+    leaderboard: GamePlayer[];
+    roomId: string | number | null;
+    isHost: boolean;
+    isLoading: boolean;
+    error: string | null;
+    initGame: (roomId: string | number, isHost?: boolean) => void;
+    startGame: () => void;
+    onGameStarted: (data: unknown) => void;
+    loadNextQuestion: (questionData: { question?: GameQuestion; totalQuestions?: number } | GameQuestion) => void;
+    submitAnswer: (answerId: number) => void;
+    onAnswerResult: (result: AnswerResult) => void;
+    nextQuestion: () => void;
+    onGameFinished: (data: unknown) => void;
+    endGame: () => void;
+    startTimer: (duration: number) => void;
+    stopTimer: () => void;
+    onTimerExpired: () => void;
+    updatePlayers: (players: GamePlayer[]) => void;
+    addPlayer: (player: GamePlayer) => void;
+    removePlayer: (userId: string | number) => void;
+    updateLeaderboard: () => void;
+    setupSocketListeners: () => void;
+    cleanupSocketListeners: () => void;
+    reset: () => void;
+    clearError: () => void;
+};
+
 /**
  * Game Store - Real-time game state management
  */
-const useGameStore = create((set, get) => ({
+const useGameStore = create<GameStoreState>((set, get) => ({
     // Game state
     isGameActive: false,
     isGameStarting: false,
@@ -93,10 +164,13 @@ const useGameStore = create((set, get) => ({
         // Stop previous timer
         get().stopTimer();
 
+        const nextQuestion = (questionData as { question?: GameQuestion }).question || (questionData as GameQuestion);
+        const totalQuestions = (questionData as { totalQuestions?: number }).totalQuestions || get().totalQuestions;
+
         set({
-            currentQuestion: questionData.question || questionData,
+            currentQuestion: nextQuestion,
             currentQuestionIndex: currentQuestionIndex + 1,
-            totalQuestions: questionData.totalQuestions || get().totalQuestions,
+            totalQuestions,
             selectedAnswer: null,
             hasAnswered: false,
             answerResult: null,
@@ -104,8 +178,8 @@ const useGameStore = create((set, get) => ({
         });
 
         // Start timer for this question
-        if (questionData.question?.timeLimit) {
-            get().startTimer(questionData.question.timeLimit);
+        if (nextQuestion?.timeLimit) {
+            get().startTimer(nextQuestion.timeLimit);
         }
     },
 

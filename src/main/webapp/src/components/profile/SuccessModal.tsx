@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import './SuccessModal';
+import {FiCheckCircle, FiX} from 'react-icons/fi';
+import './SuccessModal.css';
 
 const SuccessModal = ({ show, message, onClose, autoCloseDelay = 3000 }) => {
 

@@ -1,7 +1,24 @@
 import io from 'socket.io-client';
 import Cookies from 'js-cookie';
 
+type SocketCallback = (data: any) => void;
+type RoomListCallback = ((payload: { type: string; data: any }) => void) | null;
+
 class SocketService {
+    socket: any;
+    connected: boolean;
+    reconnectAttempts: number;
+    maxReconnectAttempts: number;
+    listeners: Map<string, SocketCallback[]>;
+    rooms: Set<string | number>;
+    _subscribedRoomList: boolean;
+    _roomListCallback: RoomListCallback;
+    _onRoomCreated: SocketCallback | null;
+    _onRoomDeleted: SocketCallback | null;
+    _onRoomUpdated: SocketCallback | null;
+    _roomCallbacks: Map<string | number, SocketCallback>;
+    _roomHandlers: Map<string | number, Record<string, SocketCallback>>;
+
     constructor() {
         this.socket = null;
         this.connected = false;
@@ -9,10 +26,17 @@ class SocketService {
         this.maxReconnectAttempts = 5;
         this.listeners = new Map();
         this.rooms = new Set();
+        this._subscribedRoomList = false;
+        this._roomListCallback = null;
+        this._onRoomCreated = null;
+        this._onRoomDeleted = null;
+        this._onRoomUpdated = null;
+        this._roomCallbacks = new Map();
+        this._roomHandlers = new Map();
     }
 
-    connect(token = null) {
-        return new Promise((resolve, reject) => {
+    connect(token: string | null = null) {
+        return new Promise<void>((resolve, reject) => {
             if (this.connected && this.socket) {
                 return resolve();
             }
@@ -52,7 +76,6 @@ class SocketService {
                 // Đăng ký lại broadcast danh sách phòng nếu đã đăng ký trước đó
                 if (this._subscribedRoomList && this._roomListCallback) {
                     try {
-                        this.emit('subscribe-room-list');
                         this.subscribeToRoomList(this._roomListCallback);
                     } catch {
                     }
@@ -135,15 +158,15 @@ class SocketService {
         });
     }
 
-    setOnRoomCreated(callback) {
+    setOnRoomCreated(callback: SocketCallback) {
         this._onRoomCreated = callback;
     }
 
-    setOnRoomDeleted(callback) {
+    setOnRoomDeleted(callback: SocketCallback) {
         this._onRoomDeleted = callback;
     }
 
-    setOnRoomUpdated(callback) {
+    setOnRoomUpdated(callback: SocketCallback) {
         this._onRoomUpdated = callback;
     }
 
@@ -162,7 +185,7 @@ class SocketService {
         }
     }
 
-    emit(event, data, callback = null) {
+    emit(event: string, data: any = null, callback: SocketCallback | null = null) {
         if (!this.socket || !this.connected) {
             return;
         }
@@ -174,14 +197,12 @@ class SocketService {
         }
     }
 
-    on(event, callback) {
+    on(event: string, callback: SocketCallback) {
         if (!this.socket) {
             return;
         }
 
-        this.socket.on(event, (data) => {
-            callback(data);
-        });
+        this.socket.on(event, callback);
 
         // Lưu tham chiếu listener để dọn dẹp
         if (!this.listeners.has(event)) {
@@ -190,7 +211,7 @@ class SocketService {
         this.listeners.get(event).push(callback);
     }
 
-    off(event, callback = null) {
+    off(event: string, callback: SocketCallback | null = null) {
         if (!this.socket) return;
 
         if (callback) {
@@ -213,7 +234,7 @@ class SocketService {
         }
     }
 
-    once(event, callback) {
+    once(event: string, callback: SocketCallback) {
         if (!this.socket) {
             return;
         }
@@ -223,7 +244,7 @@ class SocketService {
         });
     }
 
-    joinRoom(roomCodeOrId, callback) {
+    joinRoom(roomCodeOrId: string | number, callback?: SocketCallback) {
         if (!this.socket || !this.connected) {
             callback?.({ success: false, error: 'Socket not connected' });
             return;
@@ -260,7 +281,7 @@ class SocketService {
         this.emit('join-room', joinData);
     }
 
-    leaveRoom(roomId, callback) {
+    leaveRoom(roomId: string | number, callback?: SocketCallback) {
         if (!this.socket || !this.connected) {
             callback?.({ success: false, error: 'Socket not connected' });
             return;
@@ -293,7 +314,7 @@ class SocketService {
         this.emit('leave-room', { roomId });
     }
 
-    startGame(roomId, callback) {
+    startGame(roomId: string | number, callback?: SocketCallback) {
         if (!this.socket || !this.connected) {
             callback?.({ success: false, error: 'Socket not connected' });
             return;
@@ -304,7 +325,7 @@ class SocketService {
         });
     }
 
-    submitAnswer(roomId, questionId, answerId, timeTaken) {
+    submitAnswer(roomId: string | number, questionId: string | number, answerId: string | number, timeTaken: number) {
         if (!this.socket || !this.connected) {
             return;
         }
@@ -317,7 +338,7 @@ class SocketService {
         });
     }
 
-    nextQuestion(roomId) {
+    nextQuestion(roomId: string | number) {
         if (!this.socket || !this.connected) {
             return;
         }
@@ -325,7 +346,7 @@ class SocketService {
         this.emit('next-question', { roomId });
     }
 
-    subscribeToRoomList(callback) {
+    subscribeToRoomList(callback: RoomListCallback) {
         if (!this.socket || !this.connected) {
             this._subscribedRoomList = true;
             this._roomListCallback = callback;
@@ -334,6 +355,15 @@ class SocketService {
 
         this._subscribedRoomList = true;
         this._roomListCallback = callback;
+
+        if (!callback) {
+            return;
+        }
+
+        // Tránh đăng ký listener trùng khi reconnect hoặc remount.
+        this.off('room-created');
+        this.off('room-deleted');
+        this.off('room-updated');
 
         this.emit('subscribe-room-list');
 
@@ -366,7 +396,7 @@ class SocketService {
     /**
      * Đăng ký sự kiện phòng - khớp chính xác với backend
      */
-    subscribeToRoom(roomId, callback) {
+    subscribeToRoom(roomId: string | number, callback: SocketCallback) {
 
         this.unsubscribeFromRoom(roomId);
 
@@ -416,6 +446,7 @@ class SocketService {
             'player-joined': handlePlayerJoined,
             'player-left': handlePlayerLeft,
             'room-players': handleRoomPlayers,
+            'room-players-updated': handleRoomPlayers,
             'game-started': handleGameStarted,
             'player-kicked': handlePlayerKicked,
             'host-changed': handleHostChanged
@@ -425,12 +456,13 @@ class SocketService {
         this.on('player-joined', handlePlayerJoined);
         this.on('player-left', handlePlayerLeft);
         this.on('room-players', handleRoomPlayers);
+        this.on('room-players-updated', handleRoomPlayers);
         this.on('game-started', handleGameStarted);
         this.on('player-kicked', handlePlayerKicked);
         this.on('host-changed', handleHostChanged);
     }
 
-    unsubscribeFromRoom(roomId) {
+    unsubscribeFromRoom(roomId: string | number) {
         if (!this._roomHandlers) return;
         
         const handlers = this._roomHandlers.get(roomId);
@@ -460,56 +492,56 @@ class SocketService {
     }
 
     // Event helper methods
-    onPlayerJoined(callback) {
+    onPlayerJoined(callback: SocketCallback) {
         this.on('player-joined', callback);
     }
 
-    onPlayerLeft(callback) {
+    onPlayerLeft(callback: SocketCallback) {
         this.on('player-left', callback);
     }
 
-    onPlayerKicked(callback) {
+    onPlayerKicked(callback: SocketCallback) {
         this.on('player-kicked', callback);
     }
 
-    onRoomPlayers(callback) {
+    onRoomPlayers(callback: SocketCallback) {
         this.on('room-players', callback);
     }
 
-    onGameStarted(callback) {
+    onGameStarted(callback: SocketCallback) {
         this.on('game-started', callback);
     }
 
-    onQuestionStarted(callback) {
+    onQuestionStarted(callback: SocketCallback) {
         this.on('question-started', callback);
     }
 
-    onNextQuestion(callback) {
+    onNextQuestion(callback: SocketCallback) {
         this.on('next-question', callback);
     }
 
-    onAnswerSubmitted(callback) {
+    onAnswerSubmitted(callback: SocketCallback) {
         this.on('answer-submitted', callback);
     }
 
-    onGameFinished(callback) {
+    onGameFinished(callback: SocketCallback) {
         this.on('game-ended', callback);
         this.on('game-finished', callback);
     }
 
-    onError(callback) {
+    onError(callback: SocketCallback) {
         this.on('error', callback);
     }
 
-    onRoomCreated(callback) {
+    onRoomCreated(callback: SocketCallback) {
         this.on('roomCreated', callback);
     }
 
-    onRoomDeleted(callback) {
+    onRoomDeleted(callback: SocketCallback) {
         this.on('roomDeleted', callback);
     }
 
-    onRoomUpdated(callback) {
+    onRoomUpdated(callback: SocketCallback) {
         this.on('roomUpdated', callback);
     }
 }

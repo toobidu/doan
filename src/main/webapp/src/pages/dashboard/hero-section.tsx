@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import { FiTrendingUp, FiZap } from 'react-icons/fi';
+import { GiBrain } from 'react-icons/gi';
 import '../../styles/pages/dashboard/hero-section.css';
 
 function HeroSection({ userName }) {
@@ -10,7 +12,7 @@ function HeroSection({ userName }) {
                 <div className="dh-hero-left">
                     <h1 className="dh-hero-title">Xin chào, {userName}!</h1>
                     <div className="dh-hero-subtitle">
-                        <WelcomeMessage userName={userName} />
+                        Chuc ban mot ngay hoc tap va choi game hieu qua!
                     </div>
                     <div className="dh-hero-actions">
                         <button

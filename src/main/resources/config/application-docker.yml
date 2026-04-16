@@ -1,13 +1,28 @@
 spring:
+  config:
+    activate:
+      on-profile: docker
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://postgres:5432/quizizz}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
 
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  docker:
+    compose:
+      enabled: false
 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://minio:9000}

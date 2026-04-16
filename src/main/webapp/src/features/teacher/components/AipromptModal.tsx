@@ -1,15 +1,16 @@
 import { useState } from 'react';
+import { FiCheck, FiEdit2, FiLoader, FiSend, FiTrash2, FiX } from 'react-icons/fi';
 import '../../../styles/features/teacher/aiprompt-modal.css';
 import { Check, Sparkles } from 'lucide-react';
 
 const AIPromptModal = ({ isOpen, onClose, onConfirm, loading, generatedQuestions, onEdit, onDelete }) => {
     const [prompt, setPrompt] = useState('');
-    const [editingIndex, setEditingIndex] = useState(null);
-    const [editedQuestion, setEditedQuestion] = useState(null);
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [editedQuestion, setEditedQuestion] = useState<any>(null);
 
     if (!isOpen) return null;
 
-    const handleEdit = (index) => {
+    const handleEdit = (index: number) => {
         setEditingIndex(index);
         setEditedQuestion({ ...generatedQuestions[index] });
     };

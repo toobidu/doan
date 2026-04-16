@@ -1,14 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiArrowLeft,
+    FiArrowRight,
+    FiEdit2,
+    FiMoreVertical,
+    FiPlus,
+    FiSearch,
+    FiTrash2
+} from 'react-icons/fi';
+import PopupNotification from '@shared/components/PopupNotification';
 import adminApi from '../services/admin-api';
 import { usePopup } from '@shared/hooks/use-popup';
 import '../../../styles/features/teacher/management.css';
 
 const UserManagement = () => {
-    const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
+    const [editingUser, setEditingUser] = useState<any | null>(null);
     const [formData, setFormData] = useState({ 
         username: '', 
         email: '', 
@@ -20,7 +30,7 @@ const UserManagement = () => {
         typeAccount: 'PLAYER',
         emailVerified: false 
     });
-    const [dropdownOpen, setDropdownOpen] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
     
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -64,7 +74,7 @@ const UserManagement = () => {
 
 
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (editingUser) {
@@ -93,12 +103,12 @@ const UserManagement = () => {
             setEditingUser(null);
             setCurrentPage(0);
             loadUsers();
-        } catch (error) {
+        } catch (error: any) {
             showError(error.response?.data?.message || 'Có lỗi xảy ra');
         }
     };
 
-    const handleEdit = (user) => {
+    const handleEdit = (user: any) => {
         setEditingUser(user);
         setFormData({ 
             username: user.username, 
@@ -114,7 +124,7 @@ const UserManagement = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         showConfirm(
             'Bạn có chắc muốn xóa người dùng này? Hành động này không thể hoàn tác.',
             async () => {
@@ -132,7 +142,7 @@ const UserManagement = () => {
         );
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
@@ -196,13 +206,13 @@ const UserManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}>
                                     Đang tải...
                                 </td>
                             </tr>
                         ) : users.length === 0 ? (
                             <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm ? 'Không tìm thấy người dùng phù hợp' : 'Chưa có người dùng nào'}
                                 </td>
                             </tr>

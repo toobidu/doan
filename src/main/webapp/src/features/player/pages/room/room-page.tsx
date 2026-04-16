@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
+import { IoAdd, IoClose, IoLogInOutline, IoRefresh, IoSearch } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import useRoomStore from '../../../../stores/use-room-store';
 import useWebSocketCleanup from '../../../../hooks/use-web-socket-cleanup';
+import CreateRoomModal from '../../../../components/room/CreateRoomModal';
+import JoinByCodeModal from '../../../../components/room/JoinByCodeModal';
+import RoomCard from '../../../../components/room/RoomCard';
+import SimpleBackground from '../../../../shared/components/SimpleBackground';
 import '../../../../styles/pages/room/room-page.css';
 
 const RoomsPage = () => {
@@ -57,7 +62,7 @@ const RoomsPage = () => {
      * Handle joining a public room
      * @param {string} roomCode - The room code to join
      */
-    const handleJoinPublic = async (roomCode) => {
+    const handleJoinPublic = async (roomCode: string) => {
 
         // Validation
         if (!roomCode) {
@@ -71,11 +76,11 @@ const RoomsPage = () => {
         setSuccess('');
         clearError();
 
-        const result = await joinRoom(roomCode, true);
+        const result = await joinRoom(roomCode);
 
         if (result.success) {
             setSuccess('Đang chuyển hướng vào phòng chờ...');
-            const targetRoom = result.data?.Code || roomCode;
+            const targetRoom = result.data?.roomCode || result.data?.code || result.data?.Code || roomCode;
             navigate(`/waiting-room/${targetRoom}`);
         } else {
             setJoinError(result.error);
@@ -86,7 +91,7 @@ const RoomsPage = () => {
      * Handle joining a private room by code
      * @param {string} roomCode - The room code to join
      */
-    const handleJoinPrivate = async (roomCode) => {
+    const handleJoinPrivate = async (roomCode: string) => {
         setJoinLoading(true);
         setJoinError('');
 
@@ -107,7 +112,7 @@ const RoomsPage = () => {
     /**
      * Handle successful join from modal
      */
-    const handleJoinSuccess = (result) => {
+    const handleJoinSuccess = (result: any) => {
         if (result.success) {
             setSuccess('Đã tham gia phòng thành công!');
             const targetRoom = result.data?.roomCode || result.data?.code || result.data?.RoomCode;
@@ -123,10 +128,13 @@ const RoomsPage = () => {
     const filteredRooms = rooms.filter(room => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
+        const roomName = (room.roomName || room.RoomName || '').toLowerCase();
+        const topicName = (room.topicName || room.TopicName || '').toLowerCase();
+        const roomCode = (room.roomCode || room.RoomCode || '').toLowerCase();
         return (
-            (room.RoomName && room.RoomName.toLowerCase().includes(query)) ||
-            (room.TopicName && room.TopicName.toLowerCase().includes(query)) ||
-            (room.RoomCode && room.RoomCode.toLowerCase().includes(query))
+            roomName.includes(query) ||
+            topicName.includes(query) ||
+            roomCode.includes(query)
         );
     });
 
@@ -191,7 +199,7 @@ const RoomsPage = () => {
     /**
      * Handle page change
      */
-    const handlePageChange = (page) => {
+    const handlePageChange = (page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
             // Scroll to top of room grid
@@ -205,7 +213,7 @@ const RoomsPage = () => {
     /**
      * Handle search change and reset to first page
      */
-    const handleSearchChange = (e) => {
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
         setCurrentPage(1); // Reset to first page when searching
     };
@@ -235,7 +243,7 @@ const RoomsPage = () => {
                                     className="room-btn-action room-btn-join"
                                     onClick={() => setShowJoinModal(true)}
                                 >
-                                    <IoEnter className="room-btn-icon" />
+                                    <IoLogInOutline className="room-btn-icon" />
                                     <span>Tham gia bằng mã</span>
                                 </button>
                             </div>
@@ -348,11 +356,6 @@ const RoomsPage = () => {
             {showCreateModal && (
                 <CreateRoomModal
                     onClose={() => setShowCreateModal(false)}
-                    onSuccess={() => {
-                        setShowCreateModal(false);
-                        loadRooms();
-                    }}
-                    onNavigateToRoom={(roomCode) => navigate(`/waiting-room/${roomCode}`)}
                 />
             )}
 

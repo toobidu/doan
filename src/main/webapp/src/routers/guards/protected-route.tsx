@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import authStore from "../../stores/auth-store";
 
 /**
  * ProtectedRoute - Component bảo vệ route yêu cầu xác thực
  * Chỉ cho phép truy cập nếu user đã đăng nhập
  */
-const ProtectedRoute = ({ children }) => {
+type ProtectedRouteProps = {
+  children: ReactNode;
+};
+
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const isAuthenticated = authStore((state) => state.isAuthenticated);
   const isLoading = authStore((state) => state.isLoading);
   const [isInitialized, setIsInitialized] = useState(false);

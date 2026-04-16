@@ -2,12 +2,13 @@ import { create } from 'zustand';
 import roomApi from '../services/room-api';
 import socketService from '../services/socket-service';
 import socketManager from '../utils/socket-manager';
+import { adaptRealtimeRoomPayload } from '../utils/room-utils';
 
 /**
  * [FIXED] Kho lưu trữ phòng với cập nhật thời gian thực Socket.IO
  * Được chuẩn hóa để phù hợp với kiến trúc Kahoot/Quizizz
  */
-const useRoomStore = create((set, get) => ({
+const useRoomStore = create<any>((set, get) => ({
     // Trạng thái phòng
     currentRoom: null,
     rooms: [],
@@ -97,7 +98,10 @@ const useRoomStore = create((set, get) => ({
             socketService.subscribeToRoomList((message) => {
 
                 if (message.type === 'CREATE_ROOM') {
-                    const { room } = message.data;
+                    const room = adaptRealtimeRoomPayload(message.data?.room || message.data);
+                    if (!room || !room.id) {
+                        return;
+                    }
                     set(state => {
                         const exists = state.rooms.find(r => r.id === room.id);
                         if (!exists) {
@@ -119,7 +123,10 @@ const useRoomStore = create((set, get) => ({
                         }));
                     }, 500);
                 } else if (message.type === 'ROOM_UPDATED') {
-                    const { room } = message.data;
+                    const room = adaptRealtimeRoomPayload(message.data?.room || message.data);
+                    if (!room || !room.id) {
+                        return;
+                    }
 
                     set(state => {
                         const updatedRooms = state.rooms.map(r => {
@@ -223,7 +230,7 @@ const useRoomStore = create((set, get) => ({
             });
 
             // [FIXED] Tham gia phòng qua Socket.IO sử dụng roomCode thay vì roomId
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 const timeout = setTimeout(() => {
                     set({ error: 'Timeout khi kết nối đến phòng' });
                     reject(new Error('Join room timeout'));
@@ -259,7 +266,7 @@ const useRoomStore = create((set, get) => ({
                     }
                 });
             });
-        } catch (error) {
+        } catch (error: any) {
             set({ error: error.message || 'Không thể kết nối đến phòng' });
             throw error;
         }
@@ -558,9 +565,9 @@ const useRoomStore = create((set, get) => ({
         }
 
         try {
-            const response = await roomApi.kickPlayer(state.currentRoom.id, playerId);
+            const response = await roomApi.kickPlayer(state.currentRoom.id, playerId, 'Removed by host');
             return response;
-        } catch (error) {
+        } catch (error: any) {
             const errorMessage = error.message || 'Không thể đuổi người chơi';
             return { success: false, error: errorMessage };
         }
@@ -597,7 +604,7 @@ const useRoomStore = create((set, get) => ({
         }
 
         try {
-            return new Promise((resolve) => {
+            return new Promise<{ success: boolean; error?: string }>((resolve) => {
                 socketService.startGame(state.currentRoom.id, (response) => {
                     if (response?.success !== false) {
                         resolve({ success: true });
@@ -608,7 +615,7 @@ const useRoomStore = create((set, get) => ({
                     }
                 });
             });
-        } catch (error) {
+        } catch (error: any) {
             const errorMessage = error.message || 'Có lỗi xảy ra khi bắt đầu game';
             set({ error: errorMessage });
             return { success: false, error: errorMessage };

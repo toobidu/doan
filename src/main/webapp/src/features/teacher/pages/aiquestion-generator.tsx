@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { FiBook, FiFileText, FiZap } from 'react-icons/fi';
+import AIPromptModal from '../components/AipromptModal';
 import { useAIGenerator } from '../hooks/use-aigenerator';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/aiquestion-generator.css';
@@ -9,9 +11,9 @@ const AIQuestionGenerator = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTopic, setSelectedTopic] = useState('');
     const [selectedExam, setSelectedExam] = useState('');
-    const [topics, setTopics] = useState([]);
-    const [exams, setExams] = useState([]);
-    const [filteredExams, setFilteredExams] = useState([]);
+    const [topics, setTopics] = useState<any[]>([]);
+    const [exams, setExams] = useState<any[]>([]);
+    const [filteredExams, setFilteredExams] = useState<any[]>([]);
     const [loadingTopics, setLoadingTopics] = useState(true);
     const { loading, generatedQuestions, generateQuestions, setGeneratedQuestions } = useAIGenerator();
     const navigate = useNavigate();
@@ -43,7 +45,7 @@ const AIQuestionGenerator = () => {
         }
     }, [selectedTopic, exams]);
 
-    const handleGenerate = async (prompt) => {
+    const handleGenerate = async (prompt: string) => {
         if (!selectedExam) {
             toast.error('Vui lòng chọn bộ đề trước');
             return;
@@ -65,13 +67,13 @@ const AIQuestionGenerator = () => {
         navigate('/teacher/questions');
     };
 
-    const handleEdit = (index, editedQuestion) => {
+    const handleEdit = (index: number, editedQuestion: any) => {
         const updated = [...generatedQuestions];
         updated[index] = editedQuestion;
         setGeneratedQuestions(updated);
     };
 
-    const handleDelete = (index) => {
+    const handleDelete = (index: number) => {
         const updated = generatedQuestions.filter((_, i) => i !== index);
         setGeneratedQuestions(updated);
         toast.info(`Đã xóa câu hỏi. Còn lại ${updated.length} câu hỏi.`);
@@ -96,7 +98,7 @@ const AIQuestionGenerator = () => {
         }
     ];
 
-    const handleUseExample = (exampleText) => {
+    const handleUseExample = (exampleText: string) => {
         if (!selectedExam) {
             toast.warning('Vui lòng chọn bộ đề trước');
             return;

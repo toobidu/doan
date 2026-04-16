@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/pages/welcome.css';
 import authStore from '../stores/auth-store';
+import Decoration from '../shared/components/Decoration';
 
 function Welcome() {
     const navigate = useNavigate();
-    const buttonGroupRef = useRef(null);
+    const buttonGroupRef = useRef<HTMLDivElement | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
 
     const isAuthenticated = authStore((state) => state.isAuthenticated);

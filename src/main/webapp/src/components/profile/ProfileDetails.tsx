@@ -1,3 +1,4 @@
+import {FiUser} from 'react-icons/fi';
 import { formatDate } from '../../utils/profile-utils';
 import '../../styles/components/profile/profile-details.css';
 

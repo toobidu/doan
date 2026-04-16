@@ -1,17 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiChevronLeft,
+    FiChevronRight,
+    FiEdit2,
+    FiMoreVertical,
+    FiPlus,
+    FiSearch,
+    FiTrash2
+} from 'react-icons/fi';
+import PopupNotification from '@shared/components/PopupNotification';
 import { usePopup } from '@shared/hooks/use-popup';
 import adminApi from '../services/admin-api';
 import '../../../styles/features/teacher/management.css';
 
 const TopicManagement = () => {
     const { popup, showSuccess, showError, showConfirm, hidePopup } = usePopup();
-    const [topics, setTopics] = useState([]);
+    const [topics, setTopics] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [editingTopic, setEditingTopic] = useState(null);
+    const [editingTopic, setEditingTopic] = useState<any | null>(null);
     const [formData, setFormData] = useState({ name: '', description: '' });
-    const [dropdownOpen, setDropdownOpen] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
     
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -49,7 +59,7 @@ const TopicManagement = () => {
         }
     }, [dropdownOpen]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (editingTopic) {
@@ -64,18 +74,18 @@ const TopicManagement = () => {
             setEditingTopic(null);
             setCurrentPage(0);
             loadTopics();
-        } catch (error) {
+        } catch (error: any) {
             showError(error.response?.data?.message || 'Có lỗi xảy ra');
         }
     };
 
-    const handleEdit = (topic) => {
+    const handleEdit = (topic: any) => {
         setEditingTopic(topic);
         setFormData({ name: topic.name, description: topic.description });
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         showConfirm(
             'Bạn có chắc muốn xóa chủ đề này? Hành động này không thể hoàn tác.',
             async () => {
@@ -93,7 +103,7 @@ const TopicManagement = () => {
         );
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
@@ -145,11 +155,11 @@ const TopicManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Đang tải...</td>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Đang tải...</td>
                             </tr>
                         ) : topics.length === 0 ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm ? 'Không tìm thấy chủ đề phù hợp' : 'Chưa có chủ đề nào'}
                                 </td>
                             </tr>

@@ -14,10 +14,28 @@ Tài liệu này mô tả cách chạy dự án theo 2 chế độ:
 
 ## 2. Chạy Local Cho Phát Triển Frontend + Backend
 
+Lưu ý về profile và cấu hình:
+
+- Cấu hình Spring đã tách theo profile trong `src/main/resources/config`.
+- Mặc định khi chạy local sẽ dùng profile `dev`.
+- Production dùng profile `prod` qua biến môi trường `SPRING_PROFILES_ACTIVE=prod`.
+
 ### Bước 1: Khởi động backend
 
 ```bash
 ./mvnw spring-boot:run -Pdev-no-frontend-build
+```
+
+Khi backend khởi chạy với profile `dev`, Spring Boot sẽ tự chạy các dịch vụ phụ trợ qua Docker Compose từ file `src/main/docker/services.yml`:
+
+- PostgreSQL.
+- Redis.
+- MinIO.
+
+Nếu bạn đã chạy sẵn DB/Redis/MinIO bên ngoài Docker, có thể tắt auto-compose bằng cách đặt:
+
+```bash
+SPRING_DOCKER_COMPOSE_ENABLED=false ./mvnw spring-boot:run -Pdev-no-frontend-build
 ```
 
 Backend mặc định chạy tại `http://localhost:8080`.

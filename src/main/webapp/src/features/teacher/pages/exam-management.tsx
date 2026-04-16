@@ -1,23 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiChevronLeft,
+    FiChevronRight,
+    FiEdit2,
+    FiPlus,
+    FiSearch,
+    FiTrash2
+} from 'react-icons/fi';
+import PopupNotification from '@shared/components/PopupNotification';
 import { usePopup } from '@shared/hooks/use-popup';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/management.css';
 
 const ExamManagement = () => {
     const { popup, showSuccess, showError, showConfirm, hidePopup } = usePopup();
-    const [exams, setExams] = useState([]);
-    const [topics, setTopics] = useState([]);
+    const [exams, setExams] = useState<any[]>([]);
+    const [topics, setTopics] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedTopic, setSelectedTopic] = useState('');
+    const [selectedTopic, setSelectedTopic] = useState<string>('');
     const [showModal, setShowModal] = useState(false);
-    const [editingExam, setEditingExam] = useState(null);
-    const [formData, setFormData] = useState({ title: '', description: '', topicId: '' });
+    const [editingExam, setEditingExam] = useState<any | null>(null);
+    const [formData, setFormData] = useState({ title: '', description: '', topicId: '' as string | number });
     
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-    const [sortOrder, setSortOrder] = useState('desc');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     const loadTopics = useCallback(async () => {
         try {
@@ -61,13 +70,13 @@ const ExamManagement = () => {
         return () => clearTimeout(timer);
     }, [loadExams]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                topicId: parseInt(formData.topicId)
+                topicId: parseInt(String(formData.topicId), 10)
             };
 
             if (editingExam) {
@@ -87,12 +96,12 @@ const ExamManagement = () => {
         }
     };
 
-    const handleSearch = (value) => {
+    const handleSearch = (value: string) => {
         setSearchTerm(value);
         setCurrentPage(0);
     };
 
-    const handleTopicFilter = (value) => {
+    const handleTopicFilter = (value: string) => {
         setSelectedTopic(value);
         setCurrentPage(0);
     };
@@ -102,13 +111,13 @@ const ExamManagement = () => {
         setCurrentPage(0);
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
     };
 
-    const handleEdit = (exam) => {
+    const handleEdit = (exam: any) => {
         setEditingExam(exam);
         setFormData({ 
             title: exam.title, 
@@ -118,7 +127,7 @@ const ExamManagement = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         showConfirm(
             'Bạn có chắc muốn xóa bộ đề này? Tất cả câu hỏi trong bộ đề cũng sẽ bị xóa.',
             async () => {
@@ -140,7 +149,7 @@ const ExamManagement = () => {
         return sortOrder === 'asc' ? '↑' : '↓';
     };
 
-    const getRowNumber = (index) => {
+    const getRowNumber = (index: number) => {
         return currentPage * 10 + index + 1;
     };
 
@@ -201,14 +210,14 @@ const ExamManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
                                     <div className="spinner-small"></div>
                                     Đang tải...
                                 </td>
                             </tr>
                         ) : exams.length === 0 ? (
                             <tr>
-                                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm || selectedTopic ? 'Không tìm thấy bộ đề phù hợp' : 'Chưa có bộ đề nào'}
                                 </td>
                             </tr>

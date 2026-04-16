@@ -1,9 +1,36 @@
 import { create } from 'zustand';
 import authApi from '../services/auth-api';
-import { jwtDecode } from 'jwt-decode';
+import { JwtPayload, jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 
-const authStore = create((set) => ({
+type UserRole = 'PLAYER' | 'TEACHER' | 'ADMIN' | null;
+
+type AuthUser = {
+  id?: number | string;
+  role?: Exclude<UserRole, null>;
+  [key: string]: unknown;
+} | null;
+
+type DecodedToken = JwtPayload & {
+  typeAccount?: Exclude<UserRole, null>;
+};
+
+type AuthState = {
+  user: AuthUser;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  typeAccount: UserRole;
+  setUser: (user: AuthUser) => void;
+  clearUser: () => void;
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
+  initialize: () => Promise<void>;
+  login: (username: string, password: string) => Promise<unknown>;
+  logout: () => Promise<void>;
+};
+
+const authStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
@@ -53,9 +80,9 @@ const authStore = create((set) => ({
     }
 
     try {
-      let decoded;
+      let decoded: DecodedToken;
       try {
-        decoded = jwtDecode(token);
+        decoded = jwtDecode<DecodedToken>(token);
       } catch {
         // Token không hợp lệ, clear và return
         Cookies.remove('accessToken');
@@ -66,7 +93,7 @@ const authStore = create((set) => ({
         return;
       }
 
-      if (decoded.exp * 1000 < Date.now()) {
+      if ((decoded.exp ?? 0) * 1000 < Date.now()) {
         // Token hết hạn, thử refresh
         const refreshResponse = await authApi.refreshToken();
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
@@ -81,7 +108,7 @@ const authStore = create((set) => ({
       }
 
       // Set role from decoded token immediately
-      const userWithRole = { role: decoded.typeAccount };
+      const userWithRole = { role: decoded.typeAccount || undefined };
       set({ 
         user: userWithRole, 
         isAuthenticated: true, 
@@ -92,7 +119,7 @@ const authStore = create((set) => ({
       // Then fetch full user data
       try {
         const response = await authApi.getUser();
-        const fullUserWithRole = { ...response.data, role: decoded.typeAccount };
+        const fullUserWithRole = { ...response.data, role: decoded.typeAccount || undefined };
         set({ 
           user: fullUserWithRole, 
           isAuthenticated: true, 
@@ -125,8 +152,8 @@ const authStore = create((set) => ({
       const { accessToken, refreshToken, ...user } = response.data.data;
 
       // Decode token to get typeAccount
-      const decoded = jwtDecode(accessToken);
-      const userWithRole = { ...user, role: decoded.typeAccount };
+      const decoded = jwtDecode<DecodedToken>(accessToken);
+      const userWithRole = { ...user, role: decoded.typeAccount || undefined };
 
       // Lưu token vào Cookies và sessionStorage để persist khi reload
       Cookies.set('accessToken', accessToken, { expires: 7, secure: true, sameSite: 'strict' });

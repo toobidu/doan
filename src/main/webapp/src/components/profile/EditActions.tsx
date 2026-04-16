@@ -1,3 +1,4 @@
+import {FiLoader, FiSave, FiX} from 'react-icons/fi';
 import '../../styles/components/profile/edit-actions.css';
 
 const EditActions = ({

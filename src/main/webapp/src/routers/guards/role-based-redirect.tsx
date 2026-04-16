@@ -1,4 +1,6 @@
+import { Navigate } from "react-router-dom";
 import authStore from "../../stores/auth-store";
+import ProtectedRoute from "./protected-route";
 
 /**
  * RoleBasedRedirect - Component tự động điều hướng dựa trên role

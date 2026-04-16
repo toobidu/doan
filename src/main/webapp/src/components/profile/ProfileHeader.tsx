@@ -1,3 +1,4 @@
+import {FiCalendar, FiCamera, FiEdit, FiLoader, FiLock} from 'react-icons/fi';
 import { formatDate, getAvatarUrl } from '../../utils/profile-utils';
 import '../../styles/components/profile/profile-header.css';
 

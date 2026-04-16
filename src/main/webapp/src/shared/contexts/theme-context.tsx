@@ -1,8 +1,17 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext();
+type ThemeContextValue = {
+  theme: string;
+  toggleTheme: () => void;
+};
 
-export const ThemeProvider = ({ children }) => {
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+
+type ThemeProviderProps = {
+  children: React.ReactNode;
+};
+
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("theme");
     return saved || "light";
@@ -25,5 +34,11 @@ export const ThemeProvider = ({ children }) => {
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+};
 

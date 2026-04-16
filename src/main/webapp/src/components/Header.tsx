@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiLogOut, FiMenu, FiSettings, FiUser, FiX } from 'react-icons/fi';
 import '../styles/components/header.css';
 import authStore from '../stores/auth-store';
 import authApi from '../services/auth-api';
+import ThemeToggle from './ThemeToggle';
 
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,6 +16,7 @@ function Header() {
     const user = authStore((state) => state.user);
     const isAuthenticated = authStore((state) => state.isAuthenticated);
     const isLoading = authStore((state) => state.isLoading);
+    const error = authStore((state) => state.error);
     const logout = authStore((state) => state.logout);
 
     // Function to fetch fresh avatar
@@ -109,7 +112,7 @@ function Header() {
     }, [isAuthenticated, user?.avatarURL]);
 
 
-    const actualUserName = user?.username || 'Khách';
+    const actualUserName = typeof user?.username === 'string' ? user.username : 'Khách';
     const userInitial = actualUserName.length > 0 ? actualUserName.charAt(0).toUpperCase() : '';
 
     useEffect(() => {
@@ -128,7 +131,7 @@ function Header() {
     // Get avatar from user profile data
     useEffect(() => {
         if (isAuthenticated && user) {
-            if (user.avatarURL) {
+            if (typeof user.avatarURL === 'string' && user.avatarURL) {
                 // Check if URL is expired (simple check based on timestamp)
                 try {
                     const url = new URL(user.avatarURL);
@@ -136,7 +139,7 @@ function Header() {
                     if (dateParam) {
                         const urlDate = new Date(dateParam.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/, '$1-$2-$3T$4:$5:$6Z'));
                         const now = new Date();
-                        const diffMinutes = (now - urlDate) / (1000 * 60); // Check in minutes
+                        const diffMinutes = (now.getTime() - urlDate.getTime()) / (1000 * 60); // Check in minutes
 
                         if (diffMinutes > 50) { // If URL is older than 50 minutes (buffer for 1 hour expiry)
                             fetchFreshAvatar();

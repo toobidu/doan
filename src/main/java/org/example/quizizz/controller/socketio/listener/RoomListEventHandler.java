@@ -1,7 +1,7 @@
 package org.example.quizizz.controller.socketio.listener;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import org.example.quizizz.model.dto.room.PagedRoomResponse;
+import org.example.quizizz.controller.socketio.broadcast.RoomSocketFacade;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +16,7 @@ public class RoomListEventHandler {
     
 
     private final SocketIOServer socketIOServer;
+    private final RoomSocketFacade roomSocketFacade;
     
     public void registerEvents(SocketIOServer server) {
         
@@ -44,15 +45,7 @@ public class RoomListEventHandler {
      * @param roomResponse The created room
      */
     public void notifyRoomCreated(Object roomResponse) {
-        try {
-            socketIOServer.getRoomOperations("room-list")
-                .sendEvent("room-created", Map.of(
-                    "room", roomResponse,
-                    "timestamp", System.currentTimeMillis()
-                ));
-        } catch (Exception e) {
-            log.error("Error notifying room creation: {}", e.getMessage());
-        }
+        roomSocketFacade.notifyRoomCreated(roomResponse);
     }
     
     /**
@@ -60,15 +53,7 @@ public class RoomListEventHandler {
      * @param roomResponse The updated room
      */
     public void notifyRoomUpdated(Object roomResponse) {
-        try {
-            socketIOServer.getRoomOperations("room-list")
-                .sendEvent("room-updated", Map.of(
-                    "room", roomResponse,
-                    "timestamp", System.currentTimeMillis()
-                ));
-        } catch (Exception e) {
-            log.error("Error notifying room update: {}", e.getMessage());
-        }
+        roomSocketFacade.notifyRoomUpdated(roomResponse);
     }
     
     /**
@@ -76,14 +61,6 @@ public class RoomListEventHandler {
      * @param roomId The deleted room ID
      */
     public void notifyRoomDeleted(Long roomId) {
-        try {
-            socketIOServer.getRoomOperations("room-list")
-                .sendEvent("room-deleted", Map.of(
-                    "roomId", roomId,
-                    "timestamp", System.currentTimeMillis()
-                ));
-        } catch (Exception e) {
-            log.error("Error notifying room deletion: {}", e.getMessage());
-        }
+        roomSocketFacade.notifyRoomDeleted(roomId);
     }
 }

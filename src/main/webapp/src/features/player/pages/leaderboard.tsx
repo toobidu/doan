@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { FaMedal, FaTrophy } from 'react-icons/fa';
+import { FiTarget } from 'react-icons/fi';
 import leaderboardApi from '../../../services/leaderboard-api';
 import topicApi from '../../../services/topic-api';
+import Decoration from '../../../shared/components/Decoration';
 import '../../../styles/pages/leaderboard.css';
 
 function Leaderboard() {
-    const [topics, setTopics] = useState([]);
-    const [selectedTopic, setSelectedTopic] = useState(null);
-    const [leaderboard, setLeaderboard] = useState([]);
+    const [topics, setTopics] = useState<any[]>([]);
+    const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
+    const [leaderboard, setLeaderboard] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -32,7 +35,7 @@ function Leaderboard() {
         }
     };
 
-    const fetchLeaderboard = async (topicId) => {
+    const fetchLeaderboard = async (topicId: number) => {
         setLoading(true);
         setError('');
         try {
@@ -49,7 +52,7 @@ function Leaderboard() {
         }
     };
 
-    const getMedalIcon = (rank) => {
+    const getMedalIcon = (rank: number) => {
         if (rank === 1) return <FaTrophy style={{ color: '#FFD700' }} />;
         if (rank === 2) return <FaTrophy style={{ color: '#C0C0C0' }} />;
         if (rank === 3) return <FaTrophy style={{ color: '#CD7F32' }} />;

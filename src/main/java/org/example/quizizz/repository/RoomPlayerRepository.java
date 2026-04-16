@@ -44,6 +44,12 @@ public interface RoomPlayerRepository extends JpaRepository<RoomPlayers, Long> {
     Integer countPlayersInRoom(@Param("roomId") Long roomId);
 
     /**
+     * Đếm số lượng người chơi active theo nhiều phòng để tránh N+1 queries.
+     */
+    @Query("SELECT rp.roomId, COUNT(rp) FROM RoomPlayers rp WHERE rp.roomId IN :roomIds AND rp.status = 'ACTIVE' GROUP BY rp.roomId")
+    List<Object[]> countPlayersInRooms(@Param("roomIds") List<Long> roomIds);
+
+    /**
      * Lấy join order cao nhất trong phòng
      */
     @Query("SELECT COALESCE(MAX(rp.joinOrder), 0) FROM RoomPlayers rp WHERE rp.roomId = :roomId")

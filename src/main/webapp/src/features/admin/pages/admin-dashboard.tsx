@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { FiBarChart2, FiBook, FiKey, FiShield, FiUsers } from 'react-icons/fi';
 import adminApi from '../services/admin-api';
 import '../../../styles/features/admin/admin-dashboard.css';
 
@@ -13,7 +15,7 @@ const AdminDashboard = () => {
                 setStats(data);
             } catch (error) {
                 console.error('Error loading stats:', error);
-                setStats({ users: '-', roles: '-', permissions: '-', topics: '-' });
+                setStats({ users: 0, roles: 0, permissions: 0, topics: 0 });
             } finally {
                 setLoading(false);
             }

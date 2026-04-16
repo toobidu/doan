@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import useGameStore from '../../stores/use-game-store';
 import '../../styles/components/room/game-results.css';
 import { BarChart3, Crown, Medal, Trophy } from 'lucide-react';
+import { MdCelebration } from 'react-icons/md';
 
 /**
  * GameResults Component - Final leaderboard and statistics
@@ -95,7 +96,7 @@ const GameResults = ({ onExit, gameResults }) => {
                                         src={player.avatar || '/default-avatar.png'}
                                         alt={player.userName || 'Player'}
                                         onError={(e) => {
-                                            e.target.src = '/default-avatar.png';
+                                            e.currentTarget.src = '/default-avatar.png';
                                         }}
                                     />
                                 </div>
@@ -138,7 +139,7 @@ const GameResults = ({ onExit, gameResults }) => {
                                             alt={player.userName || 'Player'}
                                             className="mini-avatar"
                                             onError={(e) => {
-                                                e.target.src = '/default-avatar.png';
+                                                e.currentTarget.src = '/default-avatar.png';
                                             }}
                                         />
                                         {player.userName || `User${player.userId}`}

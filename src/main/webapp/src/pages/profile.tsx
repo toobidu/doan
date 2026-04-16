@@ -1,10 +1,19 @@
 import { useState } from 'react';
+import { FaExclamationTriangle } from 'react-icons/fa';
+import { FiLoader } from 'react-icons/fi';
+import EditActions from '../components/profile/EditActions';
+import PasswordChangeModal from '../components/profile/PasswordChangeModal';
+import ProfileDetails from '../components/profile/ProfileDetails';
+import ProfileHeader from '../components/profile/ProfileHeader';
+import ProfileStats from '../components/profile/ProfileStats';
+import SuccessModal from '../components/profile/SuccessModal';
 import authStore from '../stores/auth-store';
 import useDocumentTitle from '../hooks/use-document-title';
 import { useProfileData } from '../hooks/use-profile-data';
 import { useProfileEdit } from '../hooks/use-profile-edit';
 import { usePasswordChange } from '../hooks/use-password-change';
 import { useAvatarUpload } from '../hooks/use-avatar-upload';
+import Decoration from '../shared/components/Decoration';
 import '../styles/pages/profile.css';
 
 function Profile() {
@@ -84,9 +93,9 @@ function Profile() {
                             isEditing={profileEdit.isEditing}
                             isChangingPassword={passwordChange.isChangingPassword}
                             setIsEditing={profileEdit.setIsEditing}
-                            setIsChangingPassword={passwordChange.setIsChangingPassword}
                             handleFileSelect={(event) => avatarUpload.handleFileSelect(event, setUser)}
                             uploadingAvatar={avatarUpload.uploadingAvatar}
+                            setUser={setUser}
                             handleOpenPasswordModal={handleOpenPasswordModal}
                         />
 
@@ -103,17 +112,15 @@ function Profile() {
                         {/* Edit Actions */}
                         <EditActions
                             isEditing={profileEdit.isEditing}
-                            isChangingPassword={passwordChange.isChangingPassword}
                             updateLoading={profileEdit.updateLoading || passwordChange.updateLoading}
                             handleUpdateProfile={handleUpdateProfile}
-                            handleOpenPasswordModal={handleOpenPasswordModal}
                             setIsEditing={profileEdit.setIsEditing}
                             setIsChangingPassword={passwordChange.setIsChangingPassword}
-                            setFormErrors={() => { }} // Có thể implement sau
+                            setFormErrors={() => {}} // Có thể implement sau
                         />
 
                         {/* Profile Stats */}
-                        <ProfileStats profileData={profileData} />
+                        <ProfileStats />
                     </div>
                 )}
 

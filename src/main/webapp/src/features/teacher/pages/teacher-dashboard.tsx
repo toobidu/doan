@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { FiBarChart2, FiCpu, FiFileText, FiHelpCircle, FiZap } from 'react-icons/fi';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/teacher-dashboard.css';
 import { Lightbulb } from 'lucide-react';

@@ -1,25 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
+import { FaCrown } from 'react-icons/fa';
+import { FiUser } from 'react-icons/fi';
 import useRoomStore from '../../stores/use-room-store';
 import '../../styles/components/room/player-list.css';
 
 const PlayerList = () => {
     const { roomPlayers, currentRoom } = useRoomStore();
-    const [animatingPlayers, setAnimatingPlayers] = useState(new Set());
-    const [playerStates, setPlayerStates] = useState(new Map());
-    const previousPlayerIdsRef = useRef(new Set());
+    const [animatingPlayers, setAnimatingPlayers] = useState<Set<string>>(new Set());
+    const [playerStates, setPlayerStates] = useState<Map<string, any>>(new Map());
+    const previousPlayerIdsRef = useRef<Set<string>>(new Set());
 
     // Track player changes for animations
     useEffect(() => {
-        const currentPlayerIds = new Set(roomPlayers.map(p => p.id));
-        const previousPlayerIds = new Set(Array.from(previousPlayerIdsRef.current));
+        const currentPlayerIds: Set<string> = new Set<string>(roomPlayers.map((p: any) => String(p.id)));
+        const previousPlayerIds = new Set<string>(Array.from(previousPlayerIdsRef.current));
 
         // Find newly joined players
-        const newPlayers = roomPlayers.filter(p => !previousPlayerIds.has(p.id));
+        const newPlayers = roomPlayers.filter((p: any) => !previousPlayerIds.has(String(p.id)));
         // Find players who left
-        const leftPlayerIds = Array.from(previousPlayerIds).filter(id => !currentPlayerIds.has(id));
+        const leftPlayerIds = Array.from(previousPlayerIds).filter((id) => !currentPlayerIds.has(id));
 
         // Animate new players
-        newPlayers.forEach(player => {
+        newPlayers.forEach((player: any) => {
             setAnimatingPlayers(prev => new Set(prev).add(`join-${player.id}`));
             setTimeout(() => {
                 setAnimatingPlayers(prev => {
@@ -31,7 +33,7 @@ const PlayerList = () => {
         });
 
         // Animate leaving players (remove from DOM after animation)
-        leftPlayerIds.forEach(playerId => {
+        leftPlayerIds.forEach((playerId) => {
             setAnimatingPlayers(prev => new Set(prev).add(`leave-${playerId}`));
             setTimeout(() => {
                 setPlayerStates(prev => {
@@ -49,19 +51,19 @@ const PlayerList = () => {
 
         // Update player states
         const newStates = new Map();
-        roomPlayers.forEach(player => {
-            newStates.set(player.id, player);
+        roomPlayers.forEach((player: any) => {
+            newStates.set(String(player.id), player);
         });
         setPlayerStates(newStates);
         previousPlayerIdsRef.current = currentPlayerIds;
 
     }, [roomPlayers]);
 
-    const isPlayerHost = (playerId) => {
-        return currentRoom?.hostId === playerId || currentRoom?.ownerId === playerId;
+    const isPlayerHost = (playerId: string) => {
+        return String(currentRoom?.hostId) === playerId || String(currentRoom?.ownerId) === playerId;
     };
 
-    const getPlayerDisplayName = (player) => {
+    const getPlayerDisplayName = (player: any) => {
         return player.username || player.name || `Player ${player.id}`;
     };
 

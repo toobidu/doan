@@ -1,5 +1,12 @@
 // Routes dành cho Admin (quản trị viên)
 
+import AdminDashboard from "../../features/admin/pages/admin-dashboard";
+import PermissionManagement from "../../features/admin/pages/permission-management";
+import RoleManagement from "../../features/admin/pages/role-management";
+import TopicManagement from "../../features/admin/pages/topic-management";
+import UserManagement from "../../features/admin/pages/user-management";
+import RoleBasedRoute from "../guards/role-based-route";
+
 const adminRoutes = [
   {
     path: "admin/dashboard",

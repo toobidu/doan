@@ -1,0 +1,191 @@
+# Spring Boot configuration.
+#
+# This file contains shared defaults for all environments.
+# Profile-specific overrides are in this folder:
+# - application-dev.yml
+# - application-prod.yml
+# - application-docker.yml
+
+---
+# Disable OpenAPI docs unless profile `api-docs` is active.
+spring:
+  config:
+    activate:
+      on-profile: "!api-docs"
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,loggers,threaddump,env,configprops
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+  info:
+    git:
+      mode: full
+    env:
+      enabled: true
+  health:
+    mail:
+      enabled: false
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+        step: 60s
+  metrics:
+    enable:
+      http: true
+      jvm: true
+      logback: true
+      process: true
+      system: true
+    distribution:
+      percentiles-histogram:
+        all: true
+      percentiles:
+        all: 0, 0.5, 0.75, 0.95, 0.99, 1.0
+    tags:
+      application: ${spring.application.name}
+
+spring:
+  application:
+    name: quizizz
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+    group:
+      dev:
+        - api-docs
+  main:
+    allow-circular-references: true
+  jmx:
+    enabled: false
+  data:
+    jpa:
+      repositories:
+        bootstrap-mode: deferred
+  jpa:
+    open-in-view: false
+    properties:
+      "[hibernate.dialect]": org.hibernate.dialect.PostgreSQLDialect
+      "[hibernate.jdbc.time_zone]": Asia/Ho_Chi_Minh
+      "[hibernate.jdbc.batch_size]": 25
+      "[hibernate.jdbc.fetch_size]": 150
+      "[hibernate.format_sql]": true
+      "[hibernate.id.new_generator_mappings]": true
+      "[hibernate.connection.provider_disables_autocommit]": true
+      "[hibernate.order_inserts]": true
+      "[hibernate.order_updates]": true
+      "[hibernate.query.fail_on_pagination_over_collection_fetch]": true
+      "[hibernate.query.in_clause_parameter_padding]": true
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  thymeleaf:
+    mode: HTML
+  output:
+    ansi:
+      enabled: ALWAYS
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 20000
+    threads:
+      max: 200
+      min-spare: 10
+  servlet:
+    session:
+      cookie:
+        http-only: true
+
+springdoc:
+  show-actuator: true
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    root: INFO
+    "[org.springframework.security]": INFO
+    "[org.eclipse.paho]": WARN
+    "[org.hibernate.SQL]": INFO
+
+info:
+  display-ribbon-on-profiles: dev
+
+openai:
+  api-key: ${OPENAI_API_KEY:${KEY:}}
+  base-url: https://api.openai.com/v1
+  model: gpt-4o-mini
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:820370665f3840fdd097ddfef080afea0260702bc53f27901c61034467ab98a4d02962b5a058e6e297006f8849bf4686186f6f917f9471bcca4eaeca76c64cd4}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+minio:
+  image-bucket: ${MINIO_IMAGE_BUCKET:quizizz-images}
+  avatar-bucket: ${MINIO_AVATAR_BUCKET:quizizz-avatars}
+  secure: ${MINIO_SECURE:false}
+  presigned-url-expiry-days: ${MINIO_PRESIGNED_URL_EXPIRY_DAYS:7}
+
+socketio:
+  server:
+    port: ${SOCKETIO_PORT:9093}
+    hostname: ${SOCKETIO_HOSTNAME:0.0.0.0}
+    ping-timeout: 60000
+    ping-interval: 25000
+    max-frame-payload-length: 1048576
+    max-http-content-length: 1048576
+    transport: websocket,polling
+    allow-custom-requests: true
+    cors:
+      allowed-origins: "*"
+      allowed-methods: "GET,POST"
+
+app:
+  cache:
+    redis:
+      enabled: ${REDIS_CACHE_ENABLED:true}
+      user-permissions-ttl-hours: ${REDIS_CACHE_USER_PERMISSIONS_TTL_HOURS:24}
+      game-session-ttl-minutes: ${REDIS_CACHE_GAME_SESSION_TTL_MINUTES:120}
+      online-users-ttl-hours: ${REDIS_CACHE_ONLINE_USERS_TTL_HOURS:24}
+  company:
+    name: QuizizZ
+  support:
+    url: mailto:support@quizizz.com

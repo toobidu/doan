@@ -1,3 +1,11 @@
+import {
+    FaBrain,
+    FaChartLine,
+    FaHistory,
+    FaLightbulb,
+    FaMedal,
+    FaUsers
+} from 'react-icons/fa';
 import '../../styles/pages/footer/about-page.css';
 
 import ceoImg from '../../assets/images/ceo.jpg';
@@ -44,8 +52,8 @@ function AboutPage() {
                 </div>
                 <div className="mission-image">
                     <img src={'https://via.placeholder.com/500x350/5c6bc0/ffffff?text=BrainGame'} alt="Sứ mệnh BrainGame" onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://via.placeholder.com/500x350/5c6bc0/ffffff?text=BrainGame'
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://via.placeholder.com/500x350/5c6bc0/ffffff?text=BrainGame';
                     }}/>
                 </div>
             </section>
@@ -54,8 +62,8 @@ function AboutPage() {
             <section className="about-story">
                 <div className="story-image">
                     <img src={'https://via.placeholder.com/500x350/3f51b5/ffffff?text=Our+Story'} alt="Câu chuyện BrainGame" onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://via.placeholder.com/500x350/3f51b5/ffffff?text=Our+Story'
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://via.placeholder.com/500x350/3f51b5/ffffff?text=Our+Story';
                     }}/>
                 </div>
                 <div className="story-content">

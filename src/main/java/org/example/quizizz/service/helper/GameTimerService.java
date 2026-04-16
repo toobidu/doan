@@ -1,9 +1,9 @@
 package org.example.quizizz.service.helper;
 
-import com.corundumstudio.socketio.SocketIOServer;
-import org.example.quizizz.service.Interface.IRedisService;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.quizizz.controller.socketio.broadcast.GameSocketFacade;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -11,110 +11,157 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class GameTimerService {
-    
-    private final SocketIOServer socketIOServer;
+
+    private final GameSocketFacade gameSocketFacade;
     private final ApplicationEventPublisher eventPublisher;
-    
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-    private final Map<Long, GameTimer> activeTimers = new ConcurrentHashMap<>();
-    
+    private final Map<Long, GameTimerState> activeTimers = new ConcurrentHashMap<>();
+
     public void startGameTimer(Long roomId, int timeLimit) {
-        // Cancel any existing timer for this room
+        startGameTimer(roomId, roomId != null ? roomId.toString() : null, timeLimit);
+    }
+
+    public void startGameTimer(Long roomId, String roomCode, int timeLimit) {
+        if (roomId == null || roomCode == null || roomCode.isBlank()) {
+            return;
+        }
+
+        int safeTimeLimit = Math.max(0, timeLimit);
         stopGameTimer(roomId);
-        
-        // Create new timer
-        GameTimer timer = new GameTimer(roomId, timeLimit);
+
+        long startedAt = System.currentTimeMillis();
+        long expiresAt = startedAt + safeTimeLimit * 1000L;
+
+        GameTimerState timer = new GameTimerState(roomId, roomCode, safeTimeLimit, startedAt, expiresAt);
         activeTimers.put(roomId, timer);
-        
-        // Schedule timer ticks
-        scheduler.scheduleAtFixedRate(() -> {
+
+        broadcastTimerUpdate(timer);
+
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             try {
                 timer.tick();
-                broadcastTimerUpdate(roomId, timer.getRemainingTime());
-                
+                broadcastTimerUpdate(timer);
+
                 if (timer.isFinished()) {
-                    handleTimerFinished(roomId);
+                    handleTimerFinished(timer);
                 }
             } catch (Exception e) {
                 log.error("Error in game timer for room {}: {}", roomId, e.getMessage());
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
+
+        timer.setFuture(future);
     }
-    
+
     public void stopGameTimer(Long roomId) {
-        GameTimer timer = activeTimers.remove(roomId);
+        GameTimerState timer = activeTimers.remove(roomId);
         if (timer != null) {
             timer.cancel();
         }
     }
-    
-    private void broadcastTimerUpdate(Long roomId, int remainingTime) {
+
+    public Integer getRemainingTime(Long roomId) {
+        GameTimerState timer = activeTimers.get(roomId);
+        return timer != null ? timer.getRemainingTime() : null;
+    }
+
+    private void broadcastTimerUpdate(GameTimerState timer) {
         try {
-            // Gửi sự kiện đếm ngược đến tất cả người chơi trong phòng
-            socketIOServer.getRoomOperations("room-" + roomId)
-                .sendEvent("countdown-tick", Map.of(
-                    "roomId", roomId,
-                    "remainingTime", remainingTime,
-                    "timestamp", System.currentTimeMillis() // Thêm timestamp để đồng bộ chính xác hơn
-                ));
+            gameSocketFacade.notifyCountdownTick(
+                timer.getRoomCode(),
+                timer.getRoomId(),
+                timer.getRemainingTime(),
+                timer.getStartedAt(),
+                timer.getExpiresAt()
+            );
         } catch (Exception e) {
-            log.error("Error broadcasting timer update for room {}: {}", roomId, e.getMessage());
+            log.error("Error broadcasting timer update for room {}: {}", timer.getRoomId(), e.getMessage());
         }
     }
-    
-    /*** Xử lý khi hết thời gian trả lời câu hỏi ***/
-    private void handleTimerFinished(Long roomId) {
-        stopGameTimer(roomId);
-        
+
+    private void handleTimerFinished(GameTimerState timer) {
+        stopGameTimer(timer.getRoomId());
+
         try {
-            // Publish event để GameService xử lý next question
-            eventPublisher.publishEvent(new GameTimerEvent(this, roomId));
-            
-            // Broadcast time's up
-            socketIOServer.getRoomOperations("room-" + roomId)
-                .sendEvent("time-up", Map.of(
-                    "roomId", roomId,
-                    "timestamp", System.currentTimeMillis()
-                ));
+            eventPublisher.publishEvent(new GameTimerEvent(this, timer.getRoomId()));
+
+            gameSocketFacade.notifyTimeUp(timer.getRoomCode(), timer.getRoomId());
         } catch (Exception e) {
-            log.error("Error handling timer finished for room {}: {}", roomId, e.getMessage());
+            log.error("Error handling timer finished for room {}: {}", timer.getRoomId(), e.getMessage());
         }
     }
-    
-    private static class GameTimer {
+
+    @PreDestroy
+    public void shutdown() {
+        activeTimers.values().forEach(GameTimerState::cancel);
+        scheduler.shutdownNow();
+    }
+
+    private static class GameTimerState {
         private final Long roomId;
-        private final int totalTime;
-        private int remainingTime;
-        private boolean cancelled = false;
-        
-        public GameTimer(Long roomId, int totalTime) {
+        private final String roomCode;
+        private final AtomicInteger remainingTime;
+        private final long startedAt;
+        private final long expiresAt;
+        private volatile boolean cancelled = false;
+        private volatile ScheduledFuture<?> future;
+
+        private GameTimerState(Long roomId, String roomCode, int totalTime, long startedAt, long expiresAt) {
             this.roomId = roomId;
-            this.totalTime = totalTime;
-            this.remainingTime = totalTime;
+            this.roomCode = roomCode;
+            this.remainingTime = new AtomicInteger(totalTime);
+            this.startedAt = startedAt;
+            this.expiresAt = expiresAt;
         }
-        
-        public void tick() {
-            if (!cancelled && remainingTime > 0) {
-                remainingTime--;
+
+        private void setFuture(ScheduledFuture<?> future) {
+            this.future = future;
+        }
+
+        private void tick() {
+            if (!cancelled) {
+                remainingTime.updateAndGet(current -> current > 0 ? current - 1 : 0);
             }
         }
-        
-        public boolean isFinished() {
-            return !cancelled && remainingTime <= 0;
+
+        private boolean isFinished() {
+            return !cancelled && remainingTime.get() <= 0;
         }
-        
-        public int getRemainingTime() {
-            return remainingTime;
+
+        private int getRemainingTime() {
+            return remainingTime.get();
         }
-        
-        public void cancel() {
+
+        private Long getRoomId() {
+            return roomId;
+        }
+
+        private String getRoomCode() {
+            return roomCode;
+        }
+
+        private long getStartedAt() {
+            return startedAt;
+        }
+
+        private long getExpiresAt() {
+            return expiresAt;
+        }
+
+        private void cancel() {
             cancelled = true;
+            if (future != null) {
+                future.cancel(true);
+            }
         }
     }
 }

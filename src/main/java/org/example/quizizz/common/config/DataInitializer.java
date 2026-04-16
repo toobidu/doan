@@ -108,7 +108,10 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
 
             Role adminRole = roleRepository.findByRoleName("ADMIN").get();
-            userRoleRepository.save(new UserRole(null, admin.getId(), adminRole.getId(), null, null));
+            UserRole userRole = new UserRole();
+            userRole.setUserId(admin.getId());
+            userRole.setRoleId(adminRole.getId());
+            userRoleRepository.save(userRole);
             log.info("Created admin user: admin/admin123");
         }
 
@@ -118,7 +121,10 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(player);
 
             Role playerRole = roleRepository.findByRoleName("PLAYER").get();
-            userRoleRepository.save(new UserRole(null, player.getId(), playerRole.getId(), null, null));
+            UserRole userRole = new UserRole();
+            userRole.setUserId(player.getId());
+            userRole.setRoleId(playerRole.getId());
+            userRoleRepository.save(userRole);
             log.info("Created player user: player/player123");
         }
     }
@@ -144,7 +150,10 @@ public class DataInitializer implements CommandLineRunner {
         allPermissions.forEach(permission -> {
             if (rolePermissionRepository.findByRoleIdAndPermissionIdIn(adminRole.getId(),
                     java.util.Set.of(permission.getId())).isEmpty()) {
-                rolePermissionRepository.save(new RolePermission(null, adminRole.getId(), permission.getId(), null, null));
+                RolePermission rolePermission = new RolePermission();
+                rolePermission.setRoleId(adminRole.getId());
+                rolePermission.setPermissionId(permission.getId());
+                rolePermissionRepository.save(rolePermission);
             }
         });
 
@@ -184,7 +193,10 @@ public class DataInitializer implements CommandLineRunner {
             permissionRepository.findByPermissionName(permissionName).ifPresent(permission -> {
                 if (rolePermissionRepository.findByRoleIdAndPermissionIdIn(role.getId(),
                         java.util.Set.of(permission.getId())).isEmpty()) {
-                    rolePermissionRepository.save(new RolePermission(null, role.getId(), permission.getId(), null, null));
+                    RolePermission rolePermission = new RolePermission();
+                    rolePermission.setRoleId(role.getId());
+                    rolePermission.setPermissionId(permission.getId());
+                    rolePermissionRepository.save(rolePermission);
                 }
             });
         });

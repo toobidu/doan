@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { FiCheckCircle, FiLoader, FiXCircle } from 'react-icons/fi';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import authApi from '../../services/auth-api';
 import '../../styles/pages/verify-email.css';

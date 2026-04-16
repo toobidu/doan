@@ -1,4 +1,5 @@
 import { usePopup } from '@shared/hooks/use-popup';
+import PopupNotification from '@shared/components/PopupNotification';
 
 const PopupDemo = () => {
     const { popup, showSuccess, showError, showWarning, showInfo, showConfirm, hidePopup } = usePopup();

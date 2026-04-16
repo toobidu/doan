@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { FiCopy, FiLogOut, FiPlay, FiSettings, FiStar, FiUser, FiUsers } from 'react-icons/fi';
 
 
 import useRoomStore from '../../stores/use-room-store-realtime';
@@ -102,7 +103,7 @@ const WaitingRoom = () => {
     }, [connectToRoom, currentRoom, fromCreate, locationRoom, roomCode, setCurrentRoom, setError, setLoading]);
 
     useEffect(() => {
-        const handleGameStarted = (event) => {
+        const handleGameStarted = (event: any) => {
             const { roomId } = event.detail;
 
             if (currentRoom && roomId === currentRoom.id) {

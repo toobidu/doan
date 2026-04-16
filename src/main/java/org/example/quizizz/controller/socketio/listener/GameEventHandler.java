@@ -1,6 +1,7 @@
 package org.example.quizizz.controller.socketio.listener;
 
 import com.corundumstudio.socketio.SocketIOServer;
+import org.example.quizizz.controller.socketio.broadcast.GameSocketFacade;
 import org.example.quizizz.controller.socketio.session.SessionManager;
 import org.example.quizizz.model.dto.game.*;
 import org.example.quizizz.model.dto.socket.NextQuestionRequest;
@@ -13,7 +14,6 @@ import org.example.quizizz.service.Interface.IRoomService;
 import org.example.quizizz.service.helper.GameTimerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -27,7 +27,8 @@ public class GameEventHandler {
     private final IRoomService roomService;
     private final SessionManager sessionManager;
     private final RoomRepository roomRepository;
-    private final ApplicationContext applicationContext;
+    private final GameTimerService gameTimerService;
+    private final GameSocketFacade gameSocketFacade;
 
     /*** Đăng ký các sự kiện game ***/
     public void registerEvents(SocketIOServer server) {
@@ -73,12 +74,7 @@ public class GameEventHandler {
                     log.info("First question loaded: {}", firstQuestion.getQuestionText());
 
                     // Broadcast game bắt đầu đến tất cả players
-                    server.getRoomOperations("room-" + room.getRoomCode())
-                            .sendEvent("game-started", Map.of(
-                                    "roomId", data.getRoomId(),
-                                    "question", firstQuestion,
-                                    "timestamp", System.currentTimeMillis()
-                            ));
+                    gameSocketFacade.notifyGameStarted(room.getRoomCode(), data.getRoomId(), firstQuestion);
 
                     if (ackRequest.isAckRequested()) {
                         ackRequest.sendAckData(Map.of(
@@ -88,9 +84,8 @@ public class GameEventHandler {
                         ));
                     }
 
-                    // Bắt đầu đếm ngược
-                    GameTimerService gameTimerService = applicationContext.getBean(GameTimerService.class);
-                    gameTimerService.startGameTimer(data.getRoomId(), firstQuestion.getTimeLimit());
+                    // Bắt đầu đếm ngược server-authoritative theo roomCode
+                    gameTimerService.startGameTimer(data.getRoomId(), room.getRoomCode(), firstQuestion.getTimeLimit());
                 } else {
                     if (ackRequest.isAckRequested()) {
                         ackRequest.sendAckData(Map.of(
@@ -173,26 +168,21 @@ public class GameEventHandler {
                     if (allCompleted) {
                         log.info("🎉 All players completed! Ending game for room {}", data.getRoomId());
 
+                        // Dừng timer hiện tại để tránh kết thúc game trùng do time-up event.
+                        gameTimerService.stopGameTimer(data.getRoomId());
+
                         // Tính toán kết quả cuối cùng
                         GameOverResponse gameResult = gameService.endGame(data.getRoomId());
 
                         Room room = roomRepository.findById(data.getRoomId()).orElseThrow();
                         // Broadcast kết quả đến tất cả players
-                        server.getRoomOperations("room-" + room.getRoomCode())
-                                .sendEvent("game-finished", Map.of(
-                                        "result", gameResult,
-                                        "timestamp", System.currentTimeMillis()
-                                ));
+                        gameSocketFacade.notifyGameFinished(room.getRoomCode(), gameResult);
                     }
                 }
 
                 Room room = roomRepository.findById(data.getRoomId()).orElseThrow();
                 // Broadcast rằng user đã trả lời (không tiết lộ đáp án)
-                server.getRoomOperations("room-" + room.getRoomCode())
-                        .sendEvent("player-answered", Map.of(
-                                "userId", userId,
-                                "timestamp", System.currentTimeMillis()
-                        ));
+                    gameSocketFacade.notifyPlayerAnswered(room.getRoomCode(), userId);
 
             } catch (Exception e) {
                 log.error("❌ Error submitting answer for user: {}", e.getMessage(), e);
@@ -211,11 +201,7 @@ public class GameEventHandler {
 
                 Room room = roomRepository.findById(data.getRoomId()).orElseThrow();
                 // Broadcast kết quả câu hỏi đến tất cả players
-                server.getRoomOperations("room-" + room.getRoomCode())
-                        .sendEvent("question-result-shown", Map.of(
-                                "roomId", data.getRoomId(),
-                                "timestamp", System.currentTimeMillis()
-                        ));
+                gameSocketFacade.notifyQuestionResultShown(room.getRoomCode(), data.getRoomId());
 
             } catch (Exception e) {
                 log.error("Error showing question result: {}", e.getMessage());
@@ -237,23 +223,16 @@ public class GameEventHandler {
 
                 if (nextQuestion != null) {
                     // Broadcast câu hỏi tiếp theo
-                    server.getRoomOperations("room-" + room.getRoomCode())
-                            .sendEvent("next-question", Map.of(
-                                    "question", nextQuestion,
-                                    "timestamp", System.currentTimeMillis()
-                            ));
+                    gameSocketFacade.notifyNextQuestion(room.getRoomCode(), nextQuestion);
 
                     // Bắt đầu đếm ngược mới
-                    GameTimerService gameTimerService = applicationContext.getBean(GameTimerService.class);
-                    gameTimerService.startGameTimer(roomId, nextQuestion.getTimeLimit());
+                    gameTimerService.startGameTimer(roomId, room.getRoomCode(), nextQuestion.getTimeLimit());
                 } else {
+                    gameTimerService.stopGameTimer(roomId);
+
                     // Kết thúc game
                     GameOverResponse gameResult = gameService.endGame(roomId);
-                    server.getRoomOperations("room-" + room.getRoomCode())
-                            .sendEvent("game-finished", Map.of(
-                                    "result", gameResult,
-                                    "timestamp", System.currentTimeMillis()
-                            ));
+                        gameSocketFacade.notifyGameFinished(room.getRoomCode(), gameResult);
                 }
 
             } catch (Exception e) {
@@ -272,17 +251,12 @@ public class GameEventHandler {
                 }
 
                 // Dừng timer
-                GameTimerService gameTimerService = applicationContext.getBean(GameTimerService.class);
                 gameTimerService.stopGameTimer(data.getRoomId());
 
                 // Kết thúc game
                 GameOverResponse gameResult = gameService.endGame(data.getRoomId());
                 Room room = roomRepository.findById(data.getRoomId()).orElseThrow();
-                server.getRoomOperations("room-" + room.getRoomCode())
-                        .sendEvent("game-finished", Map.of(
-                                "result", gameResult,
-                                "timestamp", System.currentTimeMillis()
-                        ));
+                gameSocketFacade.notifyGameFinished(room.getRoomCode(), gameResult);
 
             } catch (Exception e) {
                 log.error("Error ending game: {}", e.getMessage());
@@ -309,10 +283,13 @@ public class GameEventHandler {
                 NextQuestionResponse currentQuestion = gameService.getCurrentQuestion(roomId);
 
                 if (currentQuestion != null) {
+                    Integer remainingTime = gameTimerService.getRemainingTime(roomId);
+
                     if (ackRequest.isAckRequested()) {
                         ackRequest.sendAckData(Map.of(
                                 "success", true,
                                 "currentQuestion", currentQuestion,
+                                "remainingTime", remainingTime != null ? remainingTime : currentQuestion.getTimeLimit(),
                                 "timestamp", System.currentTimeMillis()
                         ));
                     }

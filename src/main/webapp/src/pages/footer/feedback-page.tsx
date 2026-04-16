@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {FaFrown, FaMeh, FaPaperPlane, FaSmile, FaStar} from 'react-icons/fa';
 import '../../styles/pages/footer/feedback-page.css';
 
 function FeedbackPage() {
@@ -161,7 +162,7 @@ function FeedbackPage() {
                         <textarea
                             id="message"
                             name="message"
-                            rows="5"
+                            rows={5}
                             value={formData.message}
                             onChange={handleInputChange}
                             placeholder="Nhập nội dung phản hồi chi tiết của bạn"

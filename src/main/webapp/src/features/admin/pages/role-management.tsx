@@ -1,20 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiCheck,
+    FiChevronLeft,
+    FiChevronRight,
+    FiEdit2,
+    FiMoreVertical,
+    FiPlus,
+    FiSearch,
+    FiSettings,
+    FiTrash2
+} from 'react-icons/fi';
+import PopupNotification from '@shared/components/PopupNotification';
 import adminApi from '../services/admin-api';
 import { usePopup } from '@shared/hooks/use-popup';
 import '../../../styles/features/teacher/management.css';
 
 const RoleManagement = () => {
-    const [roles, setRoles] = useState([]);
-    const [permissions, setPermissions] = useState([]);
+    const [roles, setRoles] = useState<any[]>([]);
+    const [permissions, setPermissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [showPermissionModal, setShowPermissionModal] = useState(false);
-    const [editingRole, setEditingRole] = useState(null);
-    const [selectedRole, setSelectedRole] = useState(null);
-    const [rolePermissions, setRolePermissions] = useState([]);
+    const [editingRole, setEditingRole] = useState<any | null>(null);
+    const [selectedRole, setSelectedRole] = useState<any | null>(null);
+    const [rolePermissions, setRolePermissions] = useState<any[]>([]);
     const [formData, setFormData] = useState({ roleName: '', description: '' });
-    const [dropdownOpen, setDropdownOpen] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
     
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -67,7 +79,7 @@ const RoleManagement = () => {
         return () => clearTimeout(timer);
     }, [loadRoles]);
 
-    const loadRolePermissions = async (roleId) => {
+    const loadRolePermissions = async (roleId: number) => {
         try {
             const response = await adminApi.getRolePermissions(roleId);
             const permissions = response.data || [];
@@ -78,7 +90,7 @@ const RoleManagement = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             if (editingRole) {
@@ -93,18 +105,18 @@ const RoleManagement = () => {
             setEditingRole(null);
             setCurrentPage(0);
             loadRoles();
-        } catch (error) {
+        } catch (error: any) {
             showError(error.response?.data?.message || 'Có lỗi xảy ra');
         }
     };
 
-    const handleEdit = (role) => {
+    const handleEdit = (role: any) => {
         setEditingRole(role);
         setFormData({ roleName: role.roleName, description: role.description });
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         showConfirm(
             'Bạn có chắc muốn xóa vai trò này? Hành động này không thể hoàn tác.',
             async () => {
@@ -122,24 +134,24 @@ const RoleManagement = () => {
         );
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
     };
 
-    const handleManagePermissions = async (role) => {
+    const handleManagePermissions = async (role: any) => {
         setSelectedRole(role);
         await loadRolePermissions(role.id);
         setShowPermissionModal(true);
     };
 
-    const handlePermissionChange = (permissionId, isChecked) => {
+    const handlePermissionChange = (permissionId: number, isChecked: boolean) => {
         if (isChecked) {
             setRolePermissions([...rolePermissions, { id: permissionId }]);
-        } else {
-            setRolePermissions(rolePermissions.filter(p => p.id !== permissionId));
+            return;
         }
+        setRolePermissions(rolePermissions.filter((p) => p.id !== permissionId));
     };
 
     const handleSavePermissions = async () => {
@@ -200,11 +212,11 @@ const RoleManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Đang tải...</td>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Đang tải...</td>
                             </tr>
                         ) : roles.length === 0 ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm ? 'Không tìm thấy vai trò phù hợp' : 'Chưa có vai trò nào'}
                                 </td>
                             </tr>

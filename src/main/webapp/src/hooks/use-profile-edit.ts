@@ -27,7 +27,7 @@ export const useProfileEdit = (profileData, setProfileData) => {
     }, [profileData]);
 
     const validateProfile = useCallback(() => {
-        const errors = {};
+        const errors: Record<string, string> = {};
         if (!formData.fullName.trim()) errors.fullName = 'Vui lòng nhập họ tên';
         if (!formData.email.trim()) errors.email = 'Vui lòng nhập email';
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Email không hợp lệ';

@@ -1,4 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+    FiChevronLeft,
+    FiChevronRight,
+    FiEdit2,
+    FiEye,
+    FiFilter,
+    FiPlus,
+    FiSearch,
+    FiTrash2
+} from 'react-icons/fi';
+import PopupNotification from '@shared/components/PopupNotification';
 import { usePopup } from '@shared/hooks/use-popup';
 import teacherApi from '../services/teacher-api';
 import '../../../styles/features/teacher/management.css';
@@ -6,16 +17,16 @@ import { Check, X } from 'lucide-react';
 
 const QuestionManagement = () => {
     const { popup, showSuccess, showError, showConfirm, hidePopup } = usePopup();
-    const [questions, setQuestions] = useState([]);
-    const [exams, setExams] = useState([]);
+    const [questions, setQuestions] = useState<any[]>([]);
+    const [exams, setExams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedExam, setSelectedExam] = useState('');
+    const [selectedExam, setSelectedExam] = useState<string>('');
     const [selectedType, setSelectedType] = useState('ALL');
     const [showModal, setShowModal] = useState(false);
     const [showAnswersModal, setShowAnswersModal] = useState(false);
-    const [editingQuestion, setEditingQuestion] = useState(null);
-    const [viewingAnswers, setViewingAnswers] = useState([]);
+    const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
+    const [viewingAnswers, setViewingAnswers] = useState<any[]>([]);
     
     // Pagination states
     const [currentPage, setCurrentPage] = useState(0);
@@ -26,7 +37,7 @@ const QuestionManagement = () => {
     const [formData, setFormData] = useState({
         questionText: '',
         questionType: 'MULTIPLE_CHOICE',
-        examId: '',
+        examId: '' as string | number,
         answers: [
             { answerText: '', isCorrect: false },
             { answerText: '', isCorrect: false },
@@ -86,13 +97,13 @@ const QuestionManagement = () => {
         return () => clearTimeout(timer);
     }, [loadQuestions]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
             const payload = {
                 questionText: formData.questionText,
                 questionType: formData.questionType,
-                examId: parseInt(formData.examId),
+                examId: parseInt(String(formData.examId), 10),
                 answers: formData.answers.filter(a => a.answerText.trim())
             };
 
@@ -112,22 +123,22 @@ const QuestionManagement = () => {
         }
     };
 
-    const handleSearch = (value) => {
+    const handleSearch = (value: string) => {
         setSearchTerm(value);
         setCurrentPage(0);
     };
 
-    const handleExamFilter = (value) => {
+    const handleExamFilter = (value: string) => {
         setSelectedExam(value);
         setCurrentPage(0);
     };
 
-    const handleTypeFilter = (value) => {
+    const handleTypeFilter = (value: string) => {
         setSelectedType(value);
         setCurrentPage(0);
     };
 
-    const handlePageChange = (newPage) => {
+    const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
             setCurrentPage(newPage);
         }
@@ -137,7 +148,7 @@ const QuestionManagement = () => {
         setFormData({
             questionText: '',
             questionType: 'MULTIPLE_CHOICE',
-            examId: '',
+            examId: '' as string | number,
             answers: [
                 { answerText: '', isCorrect: false },
                 { answerText: '', isCorrect: false },
@@ -148,7 +159,7 @@ const QuestionManagement = () => {
         setEditingQuestion(null);
     };
 
-    const handleEdit = (question) => {
+    const handleEdit = (question: any) => {
         setEditingQuestion(question);
         setFormData({
             questionText: question.questionText,
@@ -164,7 +175,7 @@ const QuestionManagement = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         showConfirm(
             'Bạn có chắc muốn xóa câu hỏi này? Hành động này không thể hoàn tác.',
             async () => {
@@ -183,23 +194,23 @@ const QuestionManagement = () => {
         );
     };
 
-    const handleViewAnswers = (question) => {
+    const handleViewAnswers = (question: any) => {
         setEditingQuestion(question);
         setViewingAnswers(question.answers || []);
         setShowAnswersModal(true);
     };
 
-    const updateAnswer = (index, field, value) => {
+    const updateAnswer = (index: number, field: 'answerText' | 'isCorrect', value: string | boolean) => {
         const newAnswers = [...formData.answers];
-        newAnswers[index][field] = value;
+        (newAnswers[index] as any)[field] = value;
         setFormData({ ...formData, answers: newAnswers });
     };
 
-    const getRowNumber = (index) => {
+    const getRowNumber = (index: number) => {
         return currentPage * 10 + index + 1;
     };
 
-    const getQuestionTypeName = (type) => {
+    const getQuestionTypeName = (type: string) => {
         const types = {
             'MULTIPLE_CHOICE': 'Trắc nghiệm',
             'TRUE_FALSE': 'Đúng/Sai'
@@ -273,14 +284,14 @@ const QuestionManagement = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                                     <div className="spinner-small"></div>
                                     Đang tải...
                                 </td>
                             </tr>
                         ) : questions.length === 0 ? (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                                     {searchTerm || selectedExam || selectedType !== 'ALL' 
                                         ? 'Không tìm thấy câu hỏi phù hợp' 
                                         : 'Chưa có câu hỏi nào'}

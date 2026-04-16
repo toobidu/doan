@@ -1,7 +1,30 @@
 import { useState } from 'react';
 
+type PopupState = {
+    isVisible: boolean;
+    type: string;
+    title: string;
+    message: string;
+    showConfirm: boolean;
+    onConfirm: (() => void) | null;
+    onCancel: (() => void) | null;
+    confirmText: string;
+    cancelText: string;
+};
+
+type ShowPopupOptions = {
+    type?: string;
+    title: string;
+    message: string;
+    showConfirm?: boolean;
+    onConfirm?: (() => void) | null;
+    onCancel?: (() => void) | null;
+    confirmText?: string;
+    cancelText?: string;
+};
+
 export const usePopup = () => {
-    const [popup, setPopup] = useState({
+    const [popup, setPopup] = useState<PopupState>({
         isVisible: false,
         type: 'info',
         title: '',
@@ -22,7 +45,7 @@ export const usePopup = () => {
         onCancel,
         confirmText = 'Xác nhận',
         cancelText = 'Hủy'
-    }) => {
+    }: ShowPopupOptions) => {
         setPopup({
             isVisible: true,
             type,
